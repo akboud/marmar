@@ -12346,14 +12346,14 @@ function showGate(){
   const g=$("gate"), inp=$("gatePass"), btn=$("gateBtn"), err=$("gateErr");
   g.classList.add("on");
   setTimeout(()=>inp.focus(), 120);
-  $("gateForm").onsubmit = async () => {
-    const p=inp.value.trim(); if(!p) return false;
+  $("gateForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const p=inp.value.trim(); if(!p) return;
     btn.disabled=true; err.textContent="…";
     const ok = await CLOUD.verify(p);
     if(ok){ CLOUD.setPass(p); g.classList.remove("on"); startApp(); }
     else { err.textContent="كلمة المرور غير صحيحة"; btn.disabled=false; inp.select(); }
-    return false;
-  };
+  });
 }
 function startApp(){
   render();

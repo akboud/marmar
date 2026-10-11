@@ -167,15 +167,15 @@ function start(){
   const saved = sessionStorage.getItem("marmar_admin");
   if(saved){ adminPass = saved; openDash(); }
 }
-$("gateForm").onsubmit = async () => {
-  const p = $("gatePass").value.trim(); if(!p) return false;
+$("gateForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const p = $("gatePass").value.trim(); if(!p) return;
   $("gateBtn").disabled = true; $("gateErr").textContent = "…";
   const ok = await tryPass(p);
   if(ok){ adminPass = p; sessionStorage.setItem("marmar_admin", p);
           $("gate").classList.add("off"); openDash(); }
   else { $("gateErr").textContent = "كلمة المرور غير صحيحة"; $("gateBtn").disabled=false; $("gatePass").select(); }
-  return false;
-};
+});
 async function tryPass(p){
   try{ const {error} = await client.rpc("get_activity",{p_admin_pass:p}); return !error; }
   catch(e){ return false; }
