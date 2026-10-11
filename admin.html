@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة المدير — منصة مرمر</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#fff; --ink:#1a1d29; --muted:#6b7280;
+    --line:#e5e7eb; --brand:#4f46e5; --brand2:#7c3aed;
+    --ok:#16a34a; --okbg:#dcfce7; --bad:#dc2626; --warn:#d97706;
+    --shadow:0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI","Noto Naskh Arabic","Tahoma",sans-serif;
+    line-height:1.7;font-size:16px}
+  header{background:linear-gradient(135deg,var(--brand),var(--brand2));
+    color:#fff;padding:18px 22px;display:flex;align-items:center;
+    justify-content:space-between;flex-wrap:wrap;gap:12px}
+  header h1{margin:0;font-size:1.3rem}
+  header .sub{opacity:.9;font-size:.85rem}
+  header .actions{display:flex;gap:8px}
+  header button{background:rgba(255,255,255,.18);border:0;color:#fff;
+    padding:9px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:.9rem}
+  header button:hover{background:rgba(255,255,255,.3)}
+  main{max-width:1050px;margin:0 auto;padding:22px}
+  .num{unicode-bidi:plaintext;direction:ltr;display:inline-block}
+
+  /* بطاقات إحصائية */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px;box-shadow:var(--shadow)}
+  .stat .k{color:var(--muted);font-size:.85rem;margin-bottom:6px}
+  .stat .v{font-size:1.5rem;font-weight:700;color:var(--brand)}
+  .stat .v small{font-size:.9rem;color:var(--muted);font-weight:500}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px;box-shadow:var(--shadow);margin-bottom:22px}
+  .panel h2{margin:0 0 16px;font-size:1.1rem;color:var(--ink);
+    display:flex;align-items:center;gap:8px}
+
+  /* أشرطة تقدّم المواد */
+  .subj{margin-bottom:14px}
+  .subj .row{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:5px}
+  .subj .row .lbl{font-weight:600}
+  .subj .row .val{color:var(--muted)}
+  .track{position:relative;height:16px;background:#eef0f5;border-radius:8px;overflow:hidden}
+  .track .open{position:absolute;inset-block:0;inset-inline-start:0;background:#c7d2fe;border-radius:8px}
+  .track .done{position:absolute;inset-block:0;inset-inline-start:0;background:var(--brand);border-radius:8px}
+  .legend{display:flex;gap:16px;font-size:.82rem;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{padding:10px 12px;text-align:center;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:.82rem;background:#fafbfc;position:sticky;top:0}
+  td.name{text-align:right;font-weight:600}
+  .pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.82rem;font-weight:700}
+  .pill.g{background:var(--okbg);color:var(--ok)}
+  .pill.y{background:#fef3c7;color:var(--warn)}
+  .pill.r{background:#fee2e2;color:var(--bad)}
+  .wrongs{color:var(--bad);font-size:.82rem;direction:ltr;unicode-bidi:plaintext}
+  .scroll{max-height:460px;overflow:auto;border-radius:10px;border:1px solid var(--line)}
+
+  /* السجلّ */
+  .log{list-style:none;margin:0;padding:0}
+  .log li{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
+  .log .ic{font-size:1.2rem;width:30px;text-align:center}
+  .log .txt{flex:1}
+  .log .txt b{font-weight:600}
+  .log .when{color:var(--muted);font-size:.8rem;white-space:nowrap}
+
+  .empty{text-align:center;color:var(--muted);padding:30px}
+  canvas{max-width:100%}
+
+  /* بوّابة */
+  #gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;
+    justify-content:center;padding:20px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
+  #gate.off{display:none}
+  .gate-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);
+    padding:30px 26px;width:100%;max-width:360px;text-align:center}
+  .gate-card .logo{font-size:2.2rem}
+  .gate-card h2{margin:10px 0 4px;color:var(--brand)}
+  .gate-card p{color:var(--muted);font-size:.92rem;margin:0 0 20px}
+  .gate-card input{width:100%;padding:13px 14px;border:1.5px solid var(--line);
+    border-radius:11px;font-size:1rem;font-family:inherit;text-align:center;margin-bottom:12px}
+  .gate-card input:focus{outline:none;border-color:var(--brand)}
+  .gate-card button{width:100%;padding:13px;border:0;border-radius:11px;background:var(--brand);
+    color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit}
+  .gate-card button:disabled{opacity:.6}
+  .gate-err{color:var(--bad);font-size:.9rem;min-height:1.2em;margin-top:6px}
+  #setup{max-width:1050px;margin:40px auto;padding:22px}
+  #setup .panel{line-height:1.9}
+  code{background:#eef0f5;padding:2px 6px;border-radius:5px;direction:ltr;
+    unicode-bidi:plaintext;display:inline-block;font-size:.88rem}
+</style>
+</head>
+<body>
+
+<!-- بوّابة المدير -->
+<div id="gate">
+  <form class="gate-card" id="gateForm" onsubmit="return false">
+    <div class="logo">🔐</div>
+    <h2>لوحة المدير</h2>
+    <p>أدخل كلمة مرور المدير</p>
+    <input id="gatePass" type="password" autocomplete="current-password" placeholder="كلمة المرور">
+    <button id="gateBtn" type="submit">دخول</button>
+    <div class="gate-err" id="gateErr"></div>
+  </form>
+</div>
+
+<!-- رسالة إذا لم يُضبط config.js -->
+<div id="setup" style="display:none">
+  <div class="panel">
+    <h2>⚙ لم تُضبط قاعدة البيانات بعد</h2>
+    <p>هذه اللوحة تحتاج إلى ملف <code>config.js</code> مملوءاً برابط مشروع Supabase ومفتاح anon.
+       افتح الملف <code>config.js</code> بجانب هذه الصفحة وضع القيمتين، ثم أعد تحميل الصفحة.
+       الخطوات الكاملة في دليل الاستضافة.</p>
+  </div>
+</div>
+
+<div id="dash" style="display:none">
+  <header>
+    <div>
+      <h1>📊 لوحة متابعة مرمر</h1>
+      <div class="sub" id="hsub">نشاط الدراسة على منصة مرمر</div>
+    </div>
+    <div class="actions">
+      <button onclick="load()">↻ تحديث</button>
+      <button onclick="logout()">خروج</button>
+    </div>
+  </header>
+  <main>
+    <div id="body"><div class="empty">…جارٍ التحميل</div></div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+/* ---- المواد وإجمالي دروسها (ثابتة من المنهاج) ---- */
+const SUBJECTS = [
+  {name:"الفيزياء", icon:"⚛", total:13},
+  {name:"الكيمياء", icon:"⚗", total:14},
+  {name:"علم الأحياء والأرض", icon:"🧬", total:26},
+  {name:"الرياضيات (الجزء الأول)", icon:"∫", total:25},
+  {name:"الرياضيات (الجزء الثاني)", icon:"△", total:21},
+  {name:"اللغة العربية وآدابها", icon:"📖", total:44},
+  {name:"اللغة الإنكليزية", icon:"🌐", total:7}
+];
+const TOTAL_LESSONS = SUBJECTS.reduce((a,s)=>a+s.total,0); // 150
+
+const cfg = window.MARMAR_CONFIG;
+const configured = cfg && cfg.url && cfg.anonKey
+  && !/ضع-هنا/.test(cfg.url) && !/ضع-هنا/.test(cfg.anonKey)
+  && typeof window.supabase !== "undefined";
+let client = configured ? window.supabase.createClient(cfg.url, cfg.anonKey) : null;
+let adminPass = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* ---------- الإقلاع ---------- */
+function start(){
+  if(!configured){ $("gate").classList.add("off"); $("setup").style.display="block"; return; }
+  const saved = sessionStorage.getItem("marmar_admin");
+  if(saved){ adminPass = saved; openDash(); }
+}
+$("gateForm").onsubmit = async () => {
+  const p = $("gatePass").value.trim(); if(!p) return false;
+  $("gateBtn").disabled = true; $("gateErr").textContent = "…";
+  const ok = await tryPass(p);
+  if(ok){ adminPass = p; sessionStorage.setItem("marmar_admin", p);
+          $("gate").classList.add("off"); openDash(); }
+  else { $("gateErr").textContent = "كلمة المرور غير صحيحة"; $("gateBtn").disabled=false; $("gatePass").select(); }
+  return false;
+};
+async function tryPass(p){
+  try{ const {error} = await client.rpc("get_activity",{p_admin_pass:p}); return !error; }
+  catch(e){ return false; }
+}
+function logout(){ sessionStorage.removeItem("marmar_admin"); location.reload(); }
+function openDash(){ $("dash").style.display="block"; load(); }
+
+/* ---------- تحميل البيانات ---------- */
+let ROWS = [];
+async function load(){
+  $("body").innerHTML = '<div class="empty">…جارٍ التحميل</div>';
+  try{
+    const {data,error} = await client.rpc("get_activity",{p_admin_pass:adminPass});
+    if(error){ $("body").innerHTML = '<div class="empty">تعذّر الجلب — تحقّق من الاتصال وكلمة المرور.</div>'; return; }
+    ROWS = (data||[]).map(r=>({...r, detail: r.detail||{}, when: new Date(r.ts)}));
+    render();
+  }catch(e){ $("body").innerHTML = '<div class="empty">تعذّر الاتصال بقاعدة البيانات.</div>'; }
+}
+
+/* ---------- أدوات الوقت ---------- */
+const AR = n => String(n);
+function dayKey(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function dayLabel(d){ return d.getDate()+"/"+(d.getMonth()+1); }
+function relTime(d){
+  const s = (Date.now()-d.getTime())/1000;
+  if(s<60) return "الآن";
+  if(s<3600) return "قبل "+AR(Math.floor(s/60))+" دقيقة";
+  if(s<86400){ const h=Math.floor(s/3600); return "قبل "+AR(h)+(h===1?" ساعة":h===2?" ساعتين":" ساعات"); }
+  const days=Math.floor(s/86400);
+  if(days===1) return "أمس";
+  if(days<30) return "قبل "+AR(days)+" يوماً";
+  return d.toLocaleDateString("ar");
+}
+
+/* ---------- العرض ---------- */
+function render(){
+  if(!ROWS.length){ $("body").innerHTML = '<div class="panel"><div class="empty">لا يوجد نشاط بعد.<br>سيظهر هنا فور أن تبدأ مرمر باستعمال الموقع.</div></div>'; return; }
+
+  const quizzes = ROWS.filter(r=>r.kind==="quiz");
+  const opens   = ROWS.filter(r=>r.kind==="open");
+  const cards   = ROWS.filter(r=>r.kind==="card");
+
+  // آخر نشاط + الأيام النشطة
+  const last = ROWS[0].when;               // مرتّبة تنازلياً من الدالة
+  const activeDays = new Set(ROWS.map(r=>dayKey(r.when)));
+
+  // الدروس المفتوحة (مميّزة) والمنجَزة (آخر حالة)
+  const openedIds = new Set(opens.map(r=>r.lesson_id).filter(Boolean));
+  const doneState = {};
+  ROWS.filter(r=>r.kind==="done").slice().reverse().forEach(r=>{ doneState[r.lesson_id] = !!r.detail.done; });
+  const doneIds = new Set(Object.keys(doneState).filter(k=>doneState[k]));
+
+  // بطاقات مميّزة
+  const cardKeys = new Set(cards.map(r=>r.lesson_id+"#"+(r.detail.index)));
+
+  // متوسط آخر علامة لكل درس
+  const lastPctByLesson = {};
+  quizzes.slice().reverse().forEach(r=>{ if(typeof r.detail.pct==="number") lastPctByLesson[r.lesson_id]=r.detail.pct; });
+  const pcts = Object.values(lastPctByLesson);
+  const avgPct = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length) : null;
+
+  // وقت الدراسة: حصص دقيقتين (كل الأحداث)
+  const buckets = {};  // dayKey -> Set(2-min slot)
+  ROWS.forEach(r=>{ const k=dayKey(r.when); (buckets[k]=buckets[k]||new Set()).add(Math.floor(r.when.getTime()/120000)); });
+  let totalMin = 0; Object.values(buckets).forEach(s=>totalMin += s.size*2);
+
+  // ---------- بناء HTML ----------
+  let h = "";
+  $("hsub").textContent = "آخر نشاط: " + relTime(last);
+
+  // بطاقات إحصائية
+  h += '<div class="stats">';
+  h += stat("آخر نشاط", relTime(last));
+  h += stat("أيام نشطة", `<span class="num">${activeDays.size}</span>`);
+  h += stat("وقت الدراسة التقريبي", fmtDur(totalMin));
+  h += stat("دروس فُتحت", `<span class="num">${openedIds.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
+  h += stat("دروس أُنجزت", `<span class="num">${doneIds.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
+  h += stat("اختبارات مُجراة", `<span class="num">${quizzes.length}</span>`);
+  h += stat("متوسّط العلامات", avgPct==null?"—":`<span class="num">${avgPct}٪</span>`);
+  h += stat("بطاقات روجعت", `<span class="num">${cardKeys.size}</span>`);
+  h += '</div>';
+
+  // مخطّط وقت الدراسة
+  h += '<div class="panel"><h2>⏱ وقت الدراسة اليوميّ (آخر ١٤ يوماً)</h2><canvas id="timeChart" height="110"></canvas></div>';
+
+  // تقدّم المواد
+  h += '<div class="panel"><h2>📚 التقدّم حسب المادة</h2>';
+  SUBJECTS.forEach(s=>{
+    const o = [...openedIds].filter(id=>subjOf(id)===s.name).length;
+    const d = [...doneIds].filter(id=>subjOf(id)===s.name).length;
+    const op = Math.round(o/s.total*100), dp = Math.round(d/s.total*100);
+    h += `<div class="subj">
+      <div class="row"><span class="lbl">${s.icon} ${esc(s.name)}</span>
+        <span class="val">فُتح <span class="num">${o}</span> · أُنجز <span class="num">${d}</span> · من <span class="num">${s.total}</span></span></div>
+      <div class="track"><div class="open" style="width:${op}%"></div><div class="done" style="width:${dp}%"></div></div>
+    </div>`;
+  });
+  h += '<div class="legend"><span><i class="dot" style="background:#c7d2fe"></i> فُتح الدرس</span>'
+     + '<span><i class="dot" style="background:var(--brand)"></i> وُسم كمُنجَز</span></div></div>';
+
+  // جدول الاختبارات
+  h += buildQuizTable(quizzes);
+
+  // السجلّ الأخير
+  h += buildLog(ROWS.slice(0,45));
+
+  $("body").innerHTML = h;
+  drawTimeChart(buckets);
+}
+
+function stat(k,v){ return `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`; }
+function fmtDur(min){
+  if(min<60) return `<span class="num">${min}</span> <small>دقيقة</small>`;
+  const h=Math.floor(min/60), m=min%60;
+  return `<span class="num">${h}</span> <small>ساعة</small>` + (m?` <span class="num">${m}</span> <small>د</small>`:"");
+}
+
+// اسم المادة لدرسٍ ما: من أحدث حدث يحمل subject
+const _subjCache = {};
+function subjOf(id){
+  if(_subjCache[id]!==undefined) return _subjCache[id];
+  const r = ROWS.find(r=>r.lesson_id===id && (r.subject||r.detail.subject));
+  return _subjCache[id] = r ? (r.subject||r.detail.subject) : null;
+}
+
+function buildQuizTable(quizzes){
+  if(!quizzes.length) return '<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="empty">لم تُجرِ أيّ اختبار بعد.</div></div>';
+  const byLesson = {};
+  quizzes.forEach(r=>{
+    const id=r.lesson_id; if(!byLesson[id]) byLesson[id]={name:r.lesson_name,subj:r.subject||r.detail.subject,attempts:0,best:0,last:null,lastTs:null,wrong:{},total:r.detail.total};
+    const L=byLesson[id]; L.attempts++;
+    const pct=r.detail.pct||0; if(pct>L.best) L.best=pct;
+    if(!L.lastTs || r.when>L.lastTs){ L.lastTs=r.when; L.last=pct; }
+    (r.detail.wrong||[]).forEach(q=>L.wrong[q]=(L.wrong[q]||0)+1);
+  });
+  const rows = Object.values(byLesson).sort((a,b)=>b.lastTs-a.lastTs);
+  let h = '<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="scroll"><table><thead><tr>'
+    + '<th>المادة</th><th>الدرس</th><th>محاولات</th><th>أفضل</th><th>آخر علامة</th><th>آخر محاولة</th><th>أسئلة متكرّرة الخطأ</th>'
+    + '</tr></thead><tbody>';
+  rows.forEach(L=>{
+    const wrongTop = Object.entries(L.wrong).sort((a,b)=>b[1]-a[1]).slice(0,5)
+      .map(([q,c])=>`س${q}${c>1?`(×${c})`:""}`).join("، ");
+    h += `<tr>
+      <td>${esc(L.subj||"—")}</td>
+      <td class="name">${esc(L.name||L.id)}</td>
+      <td><span class="num">${L.attempts}</span></td>
+      <td>${pill(L.best)}</td>
+      <td>${pill(L.last)}</td>
+      <td>${relTime(L.lastTs)}</td>
+      <td class="wrongs">${wrongTop||"—"}</td>
+    </tr>`;
+  });
+  h += '</tbody></table></div></div>';
+  return h;
+}
+function pill(p){ if(p==null) return "—"; const c=p>=90?"g":p>=60?"y":"r"; return `<span class="pill ${c} num">${p}٪</span>`; }
+
+const KIND = {open:{i:"📘",t:"فتحت درس"},quiz:{i:"✍",t:"اختبار"},card:{i:"🎴",t:"راجعت بطاقة"},done:{i:"✓",t:"وسمت كمُنجَز"},ping:{i:"•",t:"نشاط"}};
+function buildLog(rows){
+  rows = rows.filter(r=>r.kind!=="ping");  // النبض لا يُعرض
+  if(!rows.length) return "";
+  let h='<div class="panel"><h2>🕑 سجلّ النشاط الأخير</h2><ul class="log">';
+  rows.slice(0,40).forEach(r=>{
+    const k=KIND[r.kind]||{i:"•",t:r.kind};
+    let extra="";
+    if(r.kind==="quiz" && typeof r.detail.pct==="number") extra=` — ${pill(r.detail.pct)}`;
+    if(r.kind==="done") extra = r.detail.done?" ✓":" (أُلغي)";
+    h += `<li><span class="ic">${k.i}</span>
+      <span class="txt">${k.t}${r.lesson_name?`: <b>${esc(r.lesson_name)}</b>`:""}
+        ${r.subject?`<span style="color:var(--muted);font-size:.82rem"> · ${esc(r.subject)}</span>`:""}${extra}</span>
+      <span class="when">${relTime(r.when)}</span></li>`;
+  });
+  h+='</ul></div>';
+  return h;
+}
+
+let _chart=null;
+function drawTimeChart(buckets){
+  const el=$("timeChart"); if(!el || typeof Chart==="undefined") return;
+  const days=[]; const now=new Date();
+  for(let i=13;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push(d); }
+  const labels=days.map(dayLabel);
+  const vals=days.map(d=>{ const s=buckets[dayKey(d)]; return s?s.size*2:0; });
+  if(_chart) _chart.destroy();
+  _chart=new Chart(el,{type:"bar",
+    data:{labels,datasets:[{data:vals,backgroundColor:"#7c3aed",borderRadius:6,label:"دقائق"}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+" دقيقة"}}},
+      scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+}
+
+start();
+</script>
+</body>
+</html>
