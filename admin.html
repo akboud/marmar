@@ -178,21 +178,38 @@ function logout(){ sessionStorage.removeItem("marmar_admin"); location.reload();
 function openDash(){ $("dash").style.display="block"; load(); }
 
 /* ---------- تحميل ---------- */
-let ALL = [], STUDENTS = [], current = "all";
+let ALL = [], STUDENTS = [], current = "all", INVITE = "";
 async function load(){
   $("body").innerHTML = '<div class="empty">…جارٍ التحميل</div>';
   try{
-    const [a, s] = await Promise.all([
+    const [a, s, inv] = await Promise.all([
       client.rpc("get_activity",{p_admin_pass:adminPass}),
-      client.rpc("get_students",{p_admin_pass:adminPass})
+      client.rpc("get_students",{p_admin_pass:adminPass}),
+      client.rpc("get_invite",{p_admin_pass:adminPass})
     ]);
     if(a.error){ $("body").innerHTML='<div class="empty">تعذّر الجلب — تحقّق من الاتصال وكلمة المرور.</div>'; return; }
     ALL = (a.data||[]).map(r=>({...r, detail:r.detail||{}, when:new Date(r.ts)}));
     STUDENTS = (s.data||[]).slice();
+    INVITE = inv.error ? "" : (inv.data||"");
     buildPicker();
     draw();
   }catch(e){ $("body").innerHTML='<div class="empty">تعذّر الاتصال بقاعدة البيانات.</div>'; }
 }
+async function delStudent(id, name){
+  if(!window.confirm("حذف الطالب «"+name+"» وكلّ نشاطه نهائياً؟ لا يمكن التراجع.")) return;
+  const {error}=await client.rpc("delete_student",{p_admin_pass:adminPass,p_id:id});
+  if(error){ alert("تعذّر الحذف."); return; }
+  current="all"; await load();
+}
+window.delStudent=delStudent;
+async function changeInvite(){
+  const v=($("inviteInput").value||"").trim();
+  if(v.length<4){ $("inviteMsg").textContent="الرمز قصير (٤ أحرف على الأقل)"; return; }
+  const {error}=await client.rpc("set_invite",{p_admin_pass:adminPass,p_code:v});
+  if(error){ $("inviteMsg").textContent="تعذّر التغيير"; return; }
+  INVITE=v; $("inviteMsg").textContent="✓ حُفظ رمز الدعوة الجديد";
+}
+window.changeInvite=changeInvite;
 function buildPicker(){
   const sel=$("pick");
   const opts=['<option value="all">كلّ الطلاب (نظرة عامّة)</option>']
@@ -275,10 +292,19 @@ function renderRoster(){
     $("body").innerHTML=h; return;
   }
 
+  // لوحة رمز الدعوة
+  h+=`<div class="panel"><h2>🔑 رمز الدعوة</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin:0 0 12px">الطلاب الجدد يحتاجون هذا الرمز لإنشاء حساب. غيّره إذا تسرّب لمن لا علاقة له (لن يستطيع أحد التسجيل بالرمز القديم بعدها).</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input id="inviteInput" value="${esc(INVITE)}" style="flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;direction:ltr;unicode-bidi:plaintext">
+      <button onclick="changeInvite()" style="padding:10px 18px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer;font-family:inherit">حفظ الرمز</button>
+    </div>
+    <div id="inviteMsg" style="color:var(--ok);font-size:.88rem;margin-top:8px;min-height:1.1em"></div></div>`;
+
   // ترتيب حسب آخر نشاط
   perStudent.sort((a,b)=>(b.s.last?b.s.last:0)-(a.s.last?a.s.last:0));
   h+='<div class="panel"><h2>👥 الطلاب</h2><div class="scroll"><table><thead><tr>'
-   +'<th>الطالب</th><th>آخر نشاط</th><th>دروس فُتحت</th><th>أُنجزت</th><th>اختبارات</th><th>متوسّط</th><th>وقت الدراسة</th>'
+   +'<th>الطالب</th><th>آخر نشاط</th><th>دروس فُتحت</th><th>أُنجزت</th><th>اختبارات</th><th>متوسّط</th><th>وقت الدراسة</th><th></th>'
    +'</tr></thead><tbody>';
   perStudent.forEach(({st,s})=>{
     h+=`<tr class="clickable" onclick="pickAndShow(${st.id})">
@@ -289,9 +315,10 @@ function renderRoster(){
       <td><span class="num">${s.quizzes.length}</span></td>
       <td>${pill(s.avg)}</td>
       <td>${fmtDur(s.min)}</td>
+      <td><button title="حذف الطالب" onclick="event.stopPropagation();delStudent(${st.id},'${esc(st.name).replace(/'/g,"\\'")}')" style="border:0;background:#fee2e2;color:var(--bad);border-radius:8px;padding:6px 10px;cursor:pointer;font-family:inherit;font-size:.85rem">🗑 حذف</button></td>
     </tr>`;
   });
-  h+='</tbody></table></div><div class="legend" style="margin-top:12px">اضغط على اسم الطالب لعرض تفاصيله.</div></div>';
+  h+='</tbody></table></div><div class="legend" style="margin-top:12px">اضغط على اسم الطالب لعرض تفاصيله · زرّ الحذف لإزالة من لا علاقة له.</div></div>';
   $("body").innerHTML=h;
 }
 function pickAndShow(id){ current=String(id); $("pick").value=current; renderStudent(id); }
