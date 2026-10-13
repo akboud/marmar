@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-11 · لا تحتاج إنترنت -->
+<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-13 · لا تحتاج إنترنت -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>منصة مرمر — الصف الثاني الثانوي / العلمي</title>
@@ -245,6 +245,16 @@
     cursor:pointer;font-family:inherit}
   .gate-card button:disabled{opacity:.6;cursor:default}
   .gate-err{color:var(--bad);font-size:.9rem;min-height:1.2em;margin-top:6px}
+  .gate-tabs{display:flex;gap:6px;margin-bottom:18px;background:#eef0f5;border-radius:11px;padding:4px}
+  .gate-tabs button{flex:1;padding:9px;border:0;border-radius:8px;background:transparent;
+    color:var(--muted);font-weight:600;cursor:pointer;font-family:inherit;font-size:.92rem}
+  .gate-tabs button.on{background:#fff;color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .gate-field{display:none}
+  .gate-field.show{display:block}
+  .hello{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);
+    padding:6px 12px;border-radius:20px;font-size:.9rem;color:#fff}
+  .hello button{background:rgba(255,255,255,.25);border:0;color:#fff;border-radius:7px;
+    padding:4px 10px;cursor:pointer;font-family:inherit;font-size:.82rem}
 </style>
 </head>
 <body>
@@ -254,9 +264,14 @@
   <form class="gate-card" id="gateForm" onsubmit="return false">
     <div class="logo">📚</div>
     <h2>منصة مرمر</h2>
-    <p>أدخلي كلمة المرور للمتابعة</p>
-    <input id="gatePass" type="password" autocomplete="current-password"
-           inputmode="text" placeholder="كلمة المرور">
+    <p id="gateSub">سجّل دخولك للمتابعة</p>
+    <div class="gate-tabs">
+      <button type="button" id="tabLogin" class="on" onclick="setMode('login')">دخول</button>
+      <button type="button" id="tabReg" onclick="setMode('register')">حساب جديد</button>
+    </div>
+    <input id="gName" type="text" autocomplete="username" placeholder="الاسم">
+    <input id="gPass" type="password" autocomplete="current-password" placeholder="كلمة المرور">
+    <input id="gInvite" class="gate-field" type="text" placeholder="رمز الدعوة (للحساب الجديد)">
     <button id="gateBtn" type="submit">دخول</button>
     <div class="gate-err" id="gateErr"></div>
   </form>
@@ -274,6 +289,7 @@
       <button id="navStats" onclick="goStats()">📊 تحليل الأداء</button>
     </nav>
     <div class="overall" id="overall">…</div>
+    <span class="hello" id="hello" style="display:none"><span id="helloName"></span><button onclick="doLogout()">خروج</button></span>
   </div>
 </header>
 
@@ -11624,24 +11640,31 @@ const MANHAJ = [
 
 </script>
 <script>
-/* ---------- تخزين التقدّم ---------- */
+/* ---------- تخزين التقدّم (معزول لكلّ طالب على الجهاز) ---------- */
 const store = (() => {
-  let mem = {};
-  const KEY = "marmar_progress_v1";
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) mem = JSON.parse(raw);
-    return {
-      get: k => mem[k],
-      set: (k,v) => { mem[k]=v; try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} },
-      all: () => mem
-    };
-  } catch(e) {
-    return { get: k=>mem[k], set:(k,v)=>{mem[k]=v}, all:()=>mem };
+  let mem = {}, key = "marmar_progress_v1_anon";
+  function load(ns){
+    key = "marmar_progress_v1_" + (ns || "anon");
+    mem = {};
+    try { const raw = localStorage.getItem(key); if (raw) mem = JSON.parse(raw); } catch(e){}
+    // ترحيل تقدّم مرمر القديم (غير المعزول) إلى أوّل حساب يدخل على هذا الجهاز
+    try {
+      if (Object.keys(mem).length === 0) {
+        const old = localStorage.getItem("marmar_progress_v1");
+        if (old) { mem = JSON.parse(old); localStorage.setItem(key, old);
+                   localStorage.removeItem("marmar_progress_v1"); }
+      }
+    } catch(e){}
   }
+  return {
+    load,
+    get: k => mem[k],
+    set: (k,v) => { mem[k]=v; try{ localStorage.setItem(key, JSON.stringify(mem)); }catch(e){} },
+    all: () => mem
+  };
 })();
 
-/* ---------- السحابة: الدخول وتسجيل النشاط ----------
+/* ---------- السحابة: حسابات الطلاب وتسجيل النشاط ----------
    تعمل فقط عند استضافة الموقع مع ملف config.js صالح ومكتبة Supabase.
    في نسخة الملف الواحد (دون إنترنت) تبقى معطَّلة تماماً، فيعمل الموقع كما كان. */
 const CLOUD = (() => {
@@ -11649,39 +11672,58 @@ const CLOUD = (() => {
   const valid = cfg && cfg.url && cfg.anonKey
     && !/ضع-هنا/.test(cfg.url) && !/ضع-هنا/.test(cfg.anonKey)
     && typeof window.supabase !== "undefined";
-  let client = null, pass = null;
-  const PKEY = "marmar_auth_v1";
-  if (valid) {
-    try { client = window.supabase.createClient(cfg.url, cfg.anonKey); }
-    catch (e) { client = null; }
+  let client = null, sid = null, sname = null, pass = null;
+  const SKEY = "marmar_sess_v1";
+  if (valid) { try { client = window.supabase.createClient(cfg.url, cfg.anonKey); } catch(e){ client = null; } }
+
+  function save(){ try{ localStorage.setItem(SKEY, JSON.stringify({sid,sname,pass})); }catch(e){} }
+  function saved(){ try{ return JSON.parse(localStorage.getItem(SKEY)||"null"); }catch(e){ return null; } }
+
+  async function login(name, p){
+    if(!client) return {ok:false,err:"غير متاح"};
+    try{
+      const {data,error} = await client.rpc("login_student",{p_name:name,p_pass:p});
+      if(error || !data) return {ok:false,err:"الاسم أو كلمة المرور غير صحيحة"};
+      sid = data; sname = (name||"").trim(); pass = p; save(); return {ok:true};
+    }catch(e){ return {ok:false,err:"تعذّر الاتصال"}; }
   }
-  async function verify(p) {
-    if (!client) return false;
-    try {
-      const { data, error } = await client.rpc("verify_marmar", { p_pass: p });
-      return !error && data === true;
-    } catch (e) { return false; }
+  async function register(name, p, invite){
+    if(!client) return {ok:false,err:"غير متاح"};
+    try{
+      const {data,error} = await client.rpc("register_student",{p_invite:invite,p_name:name,p_pass:p});
+      if(error) return {ok:false,err:regErr(error)};
+      sid = data; sname = (name||"").trim(); pass = p; save(); return {ok:true};
+    }catch(e){ return {ok:false,err:"تعذّر الاتصال"}; }
   }
-  function track(kind, L, detail) {
-    if (!client || !pass) return;
-    detail = detail || {};
-    try {
-      client.rpc("log_event", {
-        p_pass: pass,
-        p_kind: kind,
+  function regErr(e){
+    const m = ((e&&e.message)||"")+"";
+    if(/bad_invite/.test(m))  return "رمز الدعوة غير صحيح";
+    if(/name_taken/.test(m))  return "الاسم مستخدَم، اختر اسماً آخر";
+    if(/weak_pass/.test(m))   return "كلمة المرور قصيرة (٤ أحرف على الأقل)";
+    if(/bad_name/.test(m))    return "اكتب اسماً صحيحاً";
+    return "تعذّر إنشاء الحساب";
+  }
+  async function resume(){
+    const s = saved(); if(!s || !s.sid || !s.sname) return false;
+    const r = await login(s.sname, s.pass); return r.ok;
+  }
+  function track(kind, L, detail){
+    if(!client || !sid) return; detail = detail || {};
+    try{
+      client.rpc("log_student_event",{
+        p_student_id: sid, p_pass: pass, p_kind: kind,
         p_lesson_id:   L ? (L.id   || null) : null,
         p_lesson_name: L ? (L.name || null) : null,
         p_subject:     detail.subject || null,
         p_detail:      detail
-      }).then(() => {}, () => {});   // إرسال صامت لا يعطّل الدراسة
-    } catch (e) {}
+      }).then(()=>{},()=>{});   // إرسال صامت لا يعطّل الدراسة
+    }catch(e){}
   }
   return {
     enabled: () => !!client,
-    verify, track,
-    setPass(p){ pass = p; try { localStorage.setItem(PKEY, p); } catch(e){} },
-    savedPass(){ try { return localStorage.getItem(PKEY); } catch(e){ return null; } },
-    get pass(){ return pass; }, set pass(v){ pass = v; }
+    login, register, resume, track,
+    logout(){ try{ localStorage.removeItem(SKEY); }catch(e){} },
+    get sid(){ return sid; }, get sname(){ return sname; }
   };
 })();
 window.track = (k, L, d) => CLOUD.track(k, L, d);
@@ -12335,31 +12377,50 @@ function grade(){
 }
 window.grade = grade;
 
-/* ---------- الإقلاع والبوّابة ---------- */
+/* ---------- الإقلاع والبوّابة (حسابات الطلاب) ---------- */
+let __mode = "login";
+function setMode(m){
+  __mode = m;
+  $("tabLogin").classList.toggle("on", m==="login");
+  $("tabReg").classList.toggle("on", m==="register");
+  $("gInvite").classList.toggle("show", m==="register");
+  $("gateBtn").textContent = m==="register" ? "إنشاء حساب" : "دخول";
+  $("gateSub").textContent = m==="register" ? "أنشئ حسابك للانضمام" : "سجّل دخولك للمتابعة";
+  $("gateErr").textContent = "";
+}
+window.setMode = setMode;
+
 async function boot(){
-  if(!CLOUD.enabled()){ render(); return; }     // نسخة الملف الواحد: بلا بوّابة
-  const sp = CLOUD.savedPass();
-  if(sp && await CLOUD.verify(sp)){ CLOUD.pass = sp; startApp(); return; }
+  if(!CLOUD.enabled()){ store.load("local"); render(); return; }  // نسخة الملف الواحد: بلا بوّابة
+  if(await CLOUD.resume()){ enter(); return; }                    // جلسة محفوظة صالحة
   showGate();
 }
 function showGate(){
-  const g=$("gate"), inp=$("gatePass"), btn=$("gateBtn"), err=$("gateErr");
+  const g=$("gate"), err=$("gateErr"), btn=$("gateBtn");
   g.classList.add("on");
-  setTimeout(()=>inp.focus(), 120);
+  setTimeout(()=>$("gName").focus(), 120);
   $("gateForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const p=inp.value.trim(); if(!p) return;
+    const name=$("gName").value.trim(), pw=$("gPass").value;
+    if(!name || !pw){ err.textContent="أدخل الاسم وكلمة المرور"; return; }
     btn.disabled=true; err.textContent="…";
-    const ok = await CLOUD.verify(p);
-    if(ok){ CLOUD.setPass(p); g.classList.remove("on"); startApp(); }
-    else { err.textContent="كلمة المرور غير صحيحة"; btn.disabled=false; inp.select(); }
+    let r;
+    if(__mode==="register"){ r = await CLOUD.register(name, pw, $("gInvite").value.trim()); }
+    else { r = await CLOUD.login(name, pw); }
+    if(r.ok){ g.classList.remove("on"); enter(); }
+    else { err.textContent = r.err; btn.disabled=false; }
   });
 }
-function startApp(){
+function enter(){
+  store.load(CLOUD.sid || "anon");     // تقدّم معزول لهذا الطالب
+  const h=$("hello"); if(h){ h.style.display=""; $("helloName").textContent = "مرحباً " + (CLOUD.sname||""); }
   render();
   track('ping', null, {});
   setInterval(()=>{ if(document.visibilityState==='visible') track('ping', null, {}); }, 120000);
 }
+function doLogout(){ CLOUD.logout(); location.reload(); }
+window.doLogout = doLogout;
+
 boot();
 </script>
 </body>

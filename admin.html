@@ -13,34 +13,33 @@
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:"Segoe UI","Noto Naskh Arabic","Tahoma",sans-serif;
-    line-height:1.7;font-size:16px}
-  header{background:linear-gradient(135deg,var(--brand),var(--brand2));
-    color:#fff;padding:18px 22px;display:flex;align-items:center;
-    justify-content:space-between;flex-wrap:wrap;gap:12px}
+    font-family:"Segoe UI","Noto Naskh Arabic","Tahoma",sans-serif;line-height:1.7;font-size:16px}
+  header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;
+    padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
   header h1{margin:0;font-size:1.3rem}
   header .sub{opacity:.9;font-size:.85rem}
-  header .actions{display:flex;gap:8px}
-  header button{background:rgba(255,255,255,.18);border:0;color:#fff;
-    padding:9px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:.9rem}
+  header .actions{display:flex;gap:8px;align-items:center}
+  header button{background:rgba(255,255,255,.18);border:0;color:#fff;padding:9px 14px;
+    border-radius:9px;cursor:pointer;font-family:inherit;font-size:.9rem}
   header button:hover{background:rgba(255,255,255,.3)}
   main{max-width:1050px;margin:0 auto;padding:22px}
   .num{unicode-bidi:plaintext;direction:ltr;display:inline-block}
 
-  /* بطاقات إحصائية */
+  .pickbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+  .pickbar label{font-weight:600;color:var(--muted);font-size:.9rem}
+  .pickbar select{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
+    font-family:inherit;font-size:.95rem;background:#fff;min-width:200px}
+  .backlink{color:var(--brand);cursor:pointer;font-size:.9rem;font-weight:600}
+
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:16px 18px;box-shadow:var(--shadow)}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
   .stat .k{color:var(--muted);font-size:.85rem;margin-bottom:6px}
   .stat .v{font-size:1.5rem;font-weight:700;color:var(--brand)}
   .stat .v small{font-size:.9rem;color:var(--muted);font-weight:500}
 
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:20px;box-shadow:var(--shadow);margin-bottom:22px}
-  .panel h2{margin:0 0 16px;font-size:1.1rem;color:var(--ink);
-    display:flex;align-items:center;gap:8px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);margin-bottom:22px}
+  .panel h2{margin:0 0 16px;font-size:1.1rem;color:var(--ink);display:flex;align-items:center;gap:8px}
 
-  /* أشرطة تقدّم المواد */
   .subj{margin-bottom:14px}
   .subj .row{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:5px}
   .subj .row .lbl{font-weight:600}
@@ -56,6 +55,8 @@
   th,td{padding:10px 12px;text-align:center;border-bottom:1px solid var(--line)}
   th{color:var(--muted);font-weight:600;font-size:.82rem;background:#fafbfc;position:sticky;top:0}
   td.name{text-align:right;font-weight:600}
+  tr.clickable{cursor:pointer}
+  tr.clickable:hover{background:#f7f8ff}
   .pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.82rem;font-weight:700}
   .pill.g{background:var(--okbg);color:var(--ok)}
   .pill.y{background:#fef3c7;color:var(--warn)}
@@ -63,7 +64,6 @@
   .wrongs{color:var(--bad);font-size:.82rem;direction:ltr;unicode-bidi:plaintext}
   .scroll{max-height:460px;overflow:auto;border-radius:10px;border:1px solid var(--line)}
 
-  /* السجلّ */
   .log{list-style:none;margin:0;padding:0}
   .log li{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
   .log .ic{font-size:1.2rem;width:30px;text-align:center}
@@ -74,31 +74,26 @@
   .empty{text-align:center;color:var(--muted);padding:30px}
   canvas{max-width:100%}
 
-  /* بوّابة */
-  #gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;
-    justify-content:center;padding:20px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
+  #gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    padding:20px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
   #gate.off{display:none}
-  .gate-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);
-    padding:30px 26px;width:100%;max-width:360px;text-align:center}
+  .gate-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:30px 26px;width:100%;max-width:360px;text-align:center}
   .gate-card .logo{font-size:2.2rem}
   .gate-card h2{margin:10px 0 4px;color:var(--brand)}
   .gate-card p{color:var(--muted);font-size:.92rem;margin:0 0 20px}
-  .gate-card input{width:100%;padding:13px 14px;border:1.5px solid var(--line);
-    border-radius:11px;font-size:1rem;font-family:inherit;text-align:center;margin-bottom:12px}
+  .gate-card input{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:11px;
+    font-size:1rem;font-family:inherit;text-align:center;margin-bottom:12px}
   .gate-card input:focus{outline:none;border-color:var(--brand)}
   .gate-card button{width:100%;padding:13px;border:0;border-radius:11px;background:var(--brand);
     color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit}
   .gate-card button:disabled{opacity:.6}
   .gate-err{color:var(--bad);font-size:.9rem;min-height:1.2em;margin-top:6px}
-  #setup{max-width:1050px;margin:40px auto;padding:22px}
-  #setup .panel{line-height:1.9}
-  code{background:#eef0f5;padding:2px 6px;border-radius:5px;direction:ltr;
-    unicode-bidi:plaintext;display:inline-block;font-size:.88rem}
+  #setup{max-width:1050px;margin:40px auto;padding:22px;display:none}
+  code{background:#eef0f5;padding:2px 6px;border-radius:5px;direction:ltr;unicode-bidi:plaintext;display:inline-block;font-size:.88rem}
 </style>
 </head>
 <body>
 
-<!-- بوّابة المدير -->
 <div id="gate">
   <form class="gate-card" id="gateForm" onsubmit="return false">
     <div class="logo">🔐</div>
@@ -110,21 +105,18 @@
   </form>
 </div>
 
-<!-- رسالة إذا لم يُضبط config.js -->
-<div id="setup" style="display:none">
+<div id="setup">
   <div class="panel">
     <h2>⚙ لم تُضبط قاعدة البيانات بعد</h2>
-    <p>هذه اللوحة تحتاج إلى ملف <code>config.js</code> مملوءاً برابط مشروع Supabase ومفتاح anon.
-       افتح الملف <code>config.js</code> بجانب هذه الصفحة وضع القيمتين، ثم أعد تحميل الصفحة.
-       الخطوات الكاملة في دليل الاستضافة.</p>
+    <p>هذه اللوحة تحتاج إلى ملف <code>config.js</code> مملوءاً برابط مشروع Supabase ومفتاح anon.</p>
   </div>
 </div>
 
 <div id="dash" style="display:none">
   <header>
     <div>
-      <h1>📊 لوحة متابعة مرمر</h1>
-      <div class="sub" id="hsub">نشاط الدراسة على منصة مرمر</div>
+      <h1>📊 لوحة متابعة الطلاب</h1>
+      <div class="sub" id="hsub">منصة مرمر</div>
     </div>
     <div class="actions">
       <button onclick="load()">↻ تحديث</button>
@@ -132,6 +124,10 @@
     </div>
   </header>
   <main>
+    <div class="pickbar">
+      <label for="pick">الطالب:</label>
+      <select id="pick" onchange="selectStudent(this.value)"></select>
+    </div>
     <div id="body"><div class="empty">…جارٍ التحميل</div></div>
   </main>
 </div>
@@ -140,7 +136,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-/* ---- المواد وإجمالي دروسها (ثابتة من المنهاج) ---- */
 const SUBJECTS = [
   {name:"الفيزياء", icon:"⚛", total:13},
   {name:"الكيمياء", icon:"⚗", total:14},
@@ -150,7 +145,7 @@ const SUBJECTS = [
   {name:"اللغة العربية وآدابها", icon:"📖", total:44},
   {name:"اللغة الإنكليزية", icon:"🌐", total:7}
 ];
-const TOTAL_LESSONS = SUBJECTS.reduce((a,s)=>a+s.total,0); // 150
+const TOTAL_LESSONS = SUBJECTS.reduce((a,s)=>a+s.total,0);
 
 const cfg = window.MARMAR_CONFIG;
 const configured = cfg && cfg.url && cfg.anonKey
@@ -161,7 +156,6 @@ let adminPass = null;
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-/* ---------- الإقلاع ---------- */
 function start(){
   if(!configured){ $("gate").classList.add("off"); $("setup").style.display="block"; return; }
   const saved = sessionStorage.getItem("marmar_admin");
@@ -183,24 +177,42 @@ async function tryPass(p){
 function logout(){ sessionStorage.removeItem("marmar_admin"); location.reload(); }
 function openDash(){ $("dash").style.display="block"; load(); }
 
-/* ---------- تحميل البيانات ---------- */
-let ROWS = [];
+/* ---------- تحميل ---------- */
+let ALL = [], STUDENTS = [], current = "all";
 async function load(){
   $("body").innerHTML = '<div class="empty">…جارٍ التحميل</div>';
   try{
-    const {data,error} = await client.rpc("get_activity",{p_admin_pass:adminPass});
-    if(error){ $("body").innerHTML = '<div class="empty">تعذّر الجلب — تحقّق من الاتصال وكلمة المرور.</div>'; return; }
-    ROWS = (data||[]).map(r=>({...r, detail: r.detail||{}, when: new Date(r.ts)}));
-    render();
-  }catch(e){ $("body").innerHTML = '<div class="empty">تعذّر الاتصال بقاعدة البيانات.</div>'; }
+    const [a, s] = await Promise.all([
+      client.rpc("get_activity",{p_admin_pass:adminPass}),
+      client.rpc("get_students",{p_admin_pass:adminPass})
+    ]);
+    if(a.error){ $("body").innerHTML='<div class="empty">تعذّر الجلب — تحقّق من الاتصال وكلمة المرور.</div>'; return; }
+    ALL = (a.data||[]).map(r=>({...r, detail:r.detail||{}, when:new Date(r.ts)}));
+    STUDENTS = (s.data||[]).slice();
+    buildPicker();
+    draw();
+  }catch(e){ $("body").innerHTML='<div class="empty">تعذّر الاتصال بقاعدة البيانات.</div>'; }
+}
+function buildPicker(){
+  const sel=$("pick");
+  const opts=['<option value="all">كلّ الطلاب (نظرة عامّة)</option>']
+    .concat(STUDENTS.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`));
+  sel.innerHTML=opts.join("");
+  sel.value=current;
+}
+function selectStudent(v){ current=v; draw(); }
+function draw(){
+  if(current==="all") renderRoster();
+  else renderStudent(Number(current));
 }
 
 /* ---------- أدوات الوقت ---------- */
-const AR = n => String(n);
+const AR=n=>String(n);
 function dayKey(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
 function dayLabel(d){ return d.getDate()+"/"+(d.getMonth()+1); }
 function relTime(d){
-  const s = (Date.now()-d.getTime())/1000;
+  if(!d) return "—";
+  const s=(Date.now()-d.getTime())/1000;
   if(s<60) return "الآن";
   if(s<3600) return "قبل "+AR(Math.floor(s/60))+" دقيقة";
   if(s<86400){ const h=Math.floor(s/3600); return "قبل "+AR(h)+(h===1?" ساعة":h===2?" ساعتين":" ساعات"); }
@@ -209,152 +221,170 @@ function relTime(d){
   if(days<30) return "قبل "+AR(days)+" يوماً";
   return d.toLocaleDateString("ar");
 }
-
-/* ---------- العرض ---------- */
-function render(){
-  if(!ROWS.length){ $("body").innerHTML = '<div class="panel"><div class="empty">لا يوجد نشاط بعد.<br>سيظهر هنا فور أن تبدأ مرمر باستعمال الموقع.</div></div>'; return; }
-
-  const quizzes = ROWS.filter(r=>r.kind==="quiz");
-  const opens   = ROWS.filter(r=>r.kind==="open");
-  const cards   = ROWS.filter(r=>r.kind==="card");
-
-  // آخر نشاط + الأيام النشطة
-  const last = ROWS[0].when;               // مرتّبة تنازلياً من الدالة
-  const activeDays = new Set(ROWS.map(r=>dayKey(r.when)));
-
-  // الدروس المفتوحة (مميّزة) والمنجَزة (آخر حالة)
-  const openedIds = new Set(opens.map(r=>r.lesson_id).filter(Boolean));
-  const doneState = {};
-  ROWS.filter(r=>r.kind==="done").slice().reverse().forEach(r=>{ doneState[r.lesson_id] = !!r.detail.done; });
-  const doneIds = new Set(Object.keys(doneState).filter(k=>doneState[k]));
-
-  // بطاقات مميّزة
-  const cardKeys = new Set(cards.map(r=>r.lesson_id+"#"+(r.detail.index)));
-
-  // متوسط آخر علامة لكل درس
-  const lastPctByLesson = {};
-  quizzes.slice().reverse().forEach(r=>{ if(typeof r.detail.pct==="number") lastPctByLesson[r.lesson_id]=r.detail.pct; });
-  const pcts = Object.values(lastPctByLesson);
-  const avgPct = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length) : null;
-
-  // وقت الدراسة: حصص دقيقتين (كل الأحداث)
-  const buckets = {};  // dayKey -> Set(2-min slot)
-  ROWS.forEach(r=>{ const k=dayKey(r.when); (buckets[k]=buckets[k]||new Set()).add(Math.floor(r.when.getTime()/120000)); });
-  let totalMin = 0; Object.values(buckets).forEach(s=>totalMin += s.size*2);
-
-  // ---------- بناء HTML ----------
-  let h = "";
-  $("hsub").textContent = "آخر نشاط: " + relTime(last);
-
-  // بطاقات إحصائية
-  h += '<div class="stats">';
-  h += stat("آخر نشاط", relTime(last));
-  h += stat("أيام نشطة", `<span class="num">${activeDays.size}</span>`);
-  h += stat("وقت الدراسة التقريبي", fmtDur(totalMin));
-  h += stat("دروس فُتحت", `<span class="num">${openedIds.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
-  h += stat("دروس أُنجزت", `<span class="num">${doneIds.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
-  h += stat("اختبارات مُجراة", `<span class="num">${quizzes.length}</span>`);
-  h += stat("متوسّط العلامات", avgPct==null?"—":`<span class="num">${avgPct}٪</span>`);
-  h += stat("بطاقات روجعت", `<span class="num">${cardKeys.size}</span>`);
-  h += '</div>';
-
-  // مخطّط وقت الدراسة
-  h += '<div class="panel"><h2>⏱ وقت الدراسة اليوميّ (آخر ١٤ يوماً)</h2><canvas id="timeChart" height="110"></canvas></div>';
-
-  // تقدّم المواد
-  h += '<div class="panel"><h2>📚 التقدّم حسب المادة</h2>';
-  SUBJECTS.forEach(s=>{
-    const o = [...openedIds].filter(id=>subjOf(id)===s.name).length;
-    const d = [...doneIds].filter(id=>subjOf(id)===s.name).length;
-    const op = Math.round(o/s.total*100), dp = Math.round(d/s.total*100);
-    h += `<div class="subj">
-      <div class="row"><span class="lbl">${s.icon} ${esc(s.name)}</span>
-        <span class="val">فُتح <span class="num">${o}</span> · أُنجز <span class="num">${d}</span> · من <span class="num">${s.total}</span></span></div>
-      <div class="track"><div class="open" style="width:${op}%"></div><div class="done" style="width:${dp}%"></div></div>
-    </div>`;
-  });
-  h += '<div class="legend"><span><i class="dot" style="background:#c7d2fe"></i> فُتح الدرس</span>'
-     + '<span><i class="dot" style="background:var(--brand)"></i> وُسم كمُنجَز</span></div></div>';
-
-  // جدول الاختبارات
-  h += buildQuizTable(quizzes);
-
-  // السجلّ الأخير
-  h += buildLog(ROWS.slice(0,45));
-
-  $("body").innerHTML = h;
-  drawTimeChart(buckets);
-}
-
 function stat(k,v){ return `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`; }
 function fmtDur(min){
+  if(!min) return `<span class="num">0</span> <small>دقيقة</small>`;
   if(min<60) return `<span class="num">${min}</span> <small>دقيقة</small>`;
   const h=Math.floor(min/60), m=min%60;
-  return `<span class="num">${h}</span> <small>ساعة</small>` + (m?` <span class="num">${m}</span> <small>د</small>`:"");
-}
-
-// اسم المادة لدرسٍ ما: من أحدث حدث يحمل subject
-const _subjCache = {};
-function subjOf(id){
-  if(_subjCache[id]!==undefined) return _subjCache[id];
-  const r = ROWS.find(r=>r.lesson_id===id && (r.subject||r.detail.subject));
-  return _subjCache[id] = r ? (r.subject||r.detail.subject) : null;
-}
-
-function buildQuizTable(quizzes){
-  if(!quizzes.length) return '<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="empty">لم تُجرِ أيّ اختبار بعد.</div></div>';
-  const byLesson = {};
-  quizzes.forEach(r=>{
-    const id=r.lesson_id; if(!byLesson[id]) byLesson[id]={name:r.lesson_name,subj:r.subject||r.detail.subject,attempts:0,best:0,last:null,lastTs:null,wrong:{},total:r.detail.total};
-    const L=byLesson[id]; L.attempts++;
-    const pct=r.detail.pct||0; if(pct>L.best) L.best=pct;
-    if(!L.lastTs || r.when>L.lastTs){ L.lastTs=r.when; L.last=pct; }
-    (r.detail.wrong||[]).forEach(q=>L.wrong[q]=(L.wrong[q]||0)+1);
-  });
-  const rows = Object.values(byLesson).sort((a,b)=>b.lastTs-a.lastTs);
-  let h = '<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="scroll"><table><thead><tr>'
-    + '<th>المادة</th><th>الدرس</th><th>محاولات</th><th>أفضل</th><th>آخر علامة</th><th>آخر محاولة</th><th>أسئلة متكرّرة الخطأ</th>'
-    + '</tr></thead><tbody>';
-  rows.forEach(L=>{
-    const wrongTop = Object.entries(L.wrong).sort((a,b)=>b[1]-a[1]).slice(0,5)
-      .map(([q,c])=>`س${q}${c>1?`(×${c})`:""}`).join("، ");
-    h += `<tr>
-      <td>${esc(L.subj||"—")}</td>
-      <td class="name">${esc(L.name||L.id)}</td>
-      <td><span class="num">${L.attempts}</span></td>
-      <td>${pill(L.best)}</td>
-      <td>${pill(L.last)}</td>
-      <td>${relTime(L.lastTs)}</td>
-      <td class="wrongs">${wrongTop||"—"}</td>
-    </tr>`;
-  });
-  h += '</tbody></table></div></div>';
-  return h;
+  return `<span class="num">${h}</span> <small>ساعة</small>`+(m?` <span class="num">${m}</span> <small>د</small>`:"");
 }
 function pill(p){ if(p==null) return "—"; const c=p>=90?"g":p>=60?"y":"r"; return `<span class="pill ${c} num">${p}٪</span>`; }
 
-const KIND = {open:{i:"📘",t:"فتحت درس"},quiz:{i:"✍",t:"اختبار"},card:{i:"🎴",t:"راجعت بطاقة"},done:{i:"✓",t:"وسمت كمُنجَز"},ping:{i:"•",t:"نشاط"}};
+/* ---------- حساب مقاييس طالب من صفوفه ---------- */
+function statsFor(rows){
+  const quizzes=rows.filter(r=>r.kind==="quiz");
+  const opened=new Set(rows.filter(r=>r.kind==="open").map(r=>r.lesson_id).filter(Boolean));
+  const doneState={}; rows.filter(r=>r.kind==="done").slice().reverse().forEach(r=>{doneState[r.lesson_id]=!!r.detail.done;});
+  const done=new Set(Object.keys(doneState).filter(k=>doneState[k]));
+  const cards=new Set(rows.filter(r=>r.kind==="card").map(r=>r.lesson_id+"#"+r.detail.index));
+  const lastPct={}; quizzes.slice().reverse().forEach(r=>{ if(typeof r.detail.pct==="number") lastPct[r.lesson_id]=r.detail.pct; });
+  const pcts=Object.values(lastPct);
+  const avg=pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):null;
+  const buckets={}; rows.forEach(r=>{const k=dayKey(r.when);(buckets[k]=buckets[k]||new Set()).add(Math.floor(r.when.getTime()/120000));});
+  let min=0; Object.values(buckets).forEach(s=>min+=s.size*2);
+  const last=rows.length?rows.reduce((a,b)=>b.when>a?b.when:a,rows[0].when):null;
+  return {quizzes, opened, done, cards, avg, min, last, buckets};
+}
+
+/* ---------- نظرة عامّة: كلّ الطلاب ---------- */
+function renderRoster(){
+  $("hsub").textContent = "نظرة عامّة على الصفّ";
+  const now=Date.now();
+  let totalQuiz=0, classPcts=[], activeToday=0, activeWeek=0;
+  const perStudent = STUDENTS.map(st=>{
+    const rows=ALL.filter(r=>r.student_id===st.id);
+    const s=statsFor(rows);
+    totalQuiz+=s.quizzes.length;
+    if(s.avg!=null) classPcts.push(s.avg);
+    if(s.last && (now-s.last.getTime())<86400e3) activeToday++;
+    if(s.last && (now-s.last.getTime())<7*86400e3) activeWeek++;
+    return {st, s};
+  });
+  const classAvg = classPcts.length?Math.round(classPcts.reduce((a,b)=>a+b,0)/classPcts.length):null;
+
+  let h='<div class="stats">';
+  h+=stat("عدد الطلاب", `<span class="num">${STUDENTS.length}</span>`);
+  h+=stat("نشِطون اليوم", `<span class="num">${activeToday}</span>`);
+  h+=stat("نشِطون هذا الأسبوع", `<span class="num">${activeWeek}</span>`);
+  h+=stat("إجمالي الاختبارات", `<span class="num">${totalQuiz}</span>`);
+  h+=stat("متوسّط الصفّ", classAvg==null?"—":`<span class="num">${classAvg}٪</span>`);
+  h+='</div>';
+
+  if(!STUDENTS.length){
+    h+='<div class="panel"><div class="empty">لا يوجد طلاب بعد.<br>سيظهر الطلاب هنا فور تسجيلهم عبر رمز الدعوة.</div></div>';
+    $("body").innerHTML=h; return;
+  }
+
+  // ترتيب حسب آخر نشاط
+  perStudent.sort((a,b)=>(b.s.last?b.s.last:0)-(a.s.last?a.s.last:0));
+  h+='<div class="panel"><h2>👥 الطلاب</h2><div class="scroll"><table><thead><tr>'
+   +'<th>الطالب</th><th>آخر نشاط</th><th>دروس فُتحت</th><th>أُنجزت</th><th>اختبارات</th><th>متوسّط</th><th>وقت الدراسة</th>'
+   +'</tr></thead><tbody>';
+  perStudent.forEach(({st,s})=>{
+    h+=`<tr class="clickable" onclick="pickAndShow(${st.id})">
+      <td class="name">${esc(st.name)}</td>
+      <td>${relTime(s.last)}</td>
+      <td><span class="num">${s.opened.size}</span> <small style="color:var(--muted)">/${TOTAL_LESSONS}</small></td>
+      <td><span class="num">${s.done.size}</span></td>
+      <td><span class="num">${s.quizzes.length}</span></td>
+      <td>${pill(s.avg)}</td>
+      <td>${fmtDur(s.min)}</td>
+    </tr>`;
+  });
+  h+='</tbody></table></div><div class="legend" style="margin-top:12px">اضغط على اسم الطالب لعرض تفاصيله.</div></div>';
+  $("body").innerHTML=h;
+}
+function pickAndShow(id){ current=String(id); $("pick").value=current; renderStudent(id); }
+
+/* ---------- تفاصيل طالب واحد ---------- */
+const _subjCache={};
+function subjOf(rows,id){
+  if(_subjCache[id]!==undefined) return _subjCache[id];
+  const r=rows.find(r=>r.lesson_id===id && (r.subject||r.detail.subject));
+  return _subjCache[id]=r?(r.subject||r.detail.subject):null;
+}
+function renderStudent(id){
+  const st=STUDENTS.find(s=>s.id===id);
+  const name=st?st.name:"طالب";
+  $("hsub").textContent="الطالب: "+name;
+  const rows=ALL.filter(r=>r.student_id===id);
+  if(!rows.length){ $("body").innerHTML=`<div class="panel"><div class="backlink" onclick="pickAll()">← كلّ الطلاب</div><div class="empty">لا يوجد نشاط لـ ${esc(name)} بعد.</div></div>`; return; }
+  const s=statsFor(rows);
+
+  let h=`<div style="margin-bottom:14px"><span class="backlink" onclick="pickAll()">← كلّ الطلاب</span></div>`;
+  h+='<div class="stats">';
+  h+=stat("آخر نشاط", relTime(s.last));
+  h+=stat("أيام نشطة", `<span class="num">${Object.keys(s.buckets).length}</span>`);
+  h+=stat("وقت الدراسة التقريبي", fmtDur(s.min));
+  h+=stat("دروس فُتحت", `<span class="num">${s.opened.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
+  h+=stat("دروس أُنجزت", `<span class="num">${s.done.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
+  h+=stat("اختبارات", `<span class="num">${s.quizzes.length}</span>`);
+  h+=stat("متوسّط العلامات", s.avg==null?"—":`<span class="num">${s.avg}٪</span>`);
+  h+=stat("بطاقات روجعت", `<span class="num">${s.cards.size}</span>`);
+  h+='</div>';
+
+  h+='<div class="panel"><h2>⏱ وقت الدراسة اليوميّ (آخر ١٤ يوماً)</h2><canvas id="timeChart" height="110"></canvas></div>';
+
+  h+='<div class="panel"><h2>📚 التقدّم حسب المادة</h2>';
+  SUBJECTS.forEach(sub=>{
+    const o=[...s.opened].filter(id=>subjOf(rows,id)===sub.name).length;
+    const d=[...s.done].filter(id=>subjOf(rows,id)===sub.name).length;
+    const op=Math.round(o/sub.total*100), dp=Math.round(d/sub.total*100);
+    h+=`<div class="subj"><div class="row"><span class="lbl">${sub.icon} ${esc(sub.name)}</span>
+      <span class="val">فُتح <span class="num">${o}</span> · أُنجز <span class="num">${d}</span> · من <span class="num">${sub.total}</span></span></div>
+      <div class="track"><div class="open" style="width:${op}%"></div><div class="done" style="width:${dp}%"></div></div></div>`;
+  });
+  h+='<div class="legend"><span><i class="dot" style="background:#c7d2fe"></i> فُتح الدرس</span>'
+   +'<span><i class="dot" style="background:var(--brand)"></i> وُسم كمُنجَز</span></div></div>';
+
+  h+=buildQuizTable(s.quizzes, rows);
+  h+=buildLog(rows.slice(0,45));
+
+  $("body").innerHTML=h;
+  drawTimeChart(s.buckets);
+}
+function pickAll(){ current="all"; $("pick").value="all"; renderRoster(); }
+
+function buildQuizTable(quizzes, rows){
+  if(!quizzes.length) return '<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="empty">لم يُجرِ أيّ اختبار بعد.</div></div>';
+  const byLesson={};
+  quizzes.forEach(r=>{
+    const id=r.lesson_id; if(!byLesson[id]) byLesson[id]={name:r.lesson_name,subj:r.subject||r.detail.subject,attempts:0,best:0,last:null,lastTs:null,wrong:{}};
+    const L=byLesson[id]; L.attempts++;
+    const pct=r.detail.pct||0; if(pct>L.best) L.best=pct;
+    if(!L.lastTs||r.when>L.lastTs){L.lastTs=r.when;L.last=pct;}
+    (r.detail.wrong||[]).forEach(q=>L.wrong[q]=(L.wrong[q]||0)+1);
+  });
+  const list=Object.values(byLesson).sort((a,b)=>b.lastTs-a.lastTs);
+  let h='<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="scroll"><table><thead><tr>'
+   +'<th>المادة</th><th>الدرس</th><th>محاولات</th><th>أفضل</th><th>آخر علامة</th><th>آخر محاولة</th><th>أسئلة متكرّرة الخطأ</th></tr></thead><tbody>';
+  list.forEach(L=>{
+    const wt=Object.entries(L.wrong).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([q,c])=>`س${q}${c>1?`(×${c})`:""}`).join("، ");
+    h+=`<tr><td>${esc(L.subj||"—")}</td><td class="name">${esc(L.name||"")}</td>
+      <td><span class="num">${L.attempts}</span></td><td>${pill(L.best)}</td><td>${pill(L.last)}</td>
+      <td>${relTime(L.lastTs)}</td><td class="wrongs">${wt||"—"}</td></tr>`;
+  });
+  h+='</tbody></table></div></div>';
+  return h;
+}
+const KIND={open:{i:"📘",t:"فتح درس"},quiz:{i:"✍",t:"اختبار"},card:{i:"🎴",t:"راجع بطاقة"},done:{i:"✓",t:"وسم كمُنجَز"},ping:{i:"•",t:"نشاط"}};
 function buildLog(rows){
-  rows = rows.filter(r=>r.kind!=="ping");  // النبض لا يُعرض
+  rows=rows.filter(r=>r.kind!=="ping");
   if(!rows.length) return "";
   let h='<div class="panel"><h2>🕑 سجلّ النشاط الأخير</h2><ul class="log">';
   rows.slice(0,40).forEach(r=>{
     const k=KIND[r.kind]||{i:"•",t:r.kind};
-    let extra="";
-    if(r.kind==="quiz" && typeof r.detail.pct==="number") extra=` — ${pill(r.detail.pct)}`;
-    if(r.kind==="done") extra = r.detail.done?" ✓":" (أُلغي)";
-    h += `<li><span class="ic">${k.i}</span>
-      <span class="txt">${k.t}${r.lesson_name?`: <b>${esc(r.lesson_name)}</b>`:""}
-        ${r.subject?`<span style="color:var(--muted);font-size:.82rem"> · ${esc(r.subject)}</span>`:""}${extra}</span>
+    let ex=""; if(r.kind==="quiz"&&typeof r.detail.pct==="number") ex=` — ${pill(r.detail.pct)}`;
+    if(r.kind==="done") ex=r.detail.done?" ✓":" (أُلغي)";
+    h+=`<li><span class="ic">${k.i}</span><span class="txt">${k.t}${r.lesson_name?`: <b>${esc(r.lesson_name)}</b>`:""}
+      ${r.subject?`<span style="color:var(--muted);font-size:.82rem"> · ${esc(r.subject)}</span>`:""}${ex}</span>
       <span class="when">${relTime(r.when)}</span></li>`;
   });
-  h+='</ul></div>';
-  return h;
+  h+='</ul></div>'; return h;
 }
-
 let _chart=null;
 function drawTimeChart(buckets){
-  const el=$("timeChart"); if(!el || typeof Chart==="undefined") return;
+  const el=$("timeChart"); if(!el||typeof Chart==="undefined") return;
   const days=[]; const now=new Date();
   for(let i=13;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push(d); }
   const labels=days.map(dayLabel);
@@ -366,6 +396,8 @@ function drawTimeChart(buckets){
       scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
 }
 
+window.selectStudent=selectStudent; window.pickAndShow=pickAndShow; window.pickAll=pickAll;
+window.load=load; window.logout=logout;
 start();
 </script>
 </body>
