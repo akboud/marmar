@@ -394,7 +394,7 @@ function buildQuizTable(quizzes, rows){
   h+='</tbody></table></div></div>';
   return h;
 }
-const KIND={open:{i:"📘",t:"فتح درس"},quiz:{i:"✍",t:"اختبار"},card:{i:"🎴",t:"راجع بطاقة"},done:{i:"✓",t:"وسم كمُنجَز"},ping:{i:"•",t:"نشاط"}};
+const KIND={open:{i:"📘",t:"فتح درس"},quiz:{i:"✍",t:"اختبار"},exam:{i:"📝",t:"اختبار فصليّ"},card:{i:"🎴",t:"راجع بطاقة"},done:{i:"✓",t:"وسم كمُنجَز"},ping:{i:"•",t:"نشاط"}};
 function buildLog(rows){
   rows=rows.filter(r=>r.kind!=="ping");
   if(!rows.length) return "";

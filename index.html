@@ -12215,8 +12215,14 @@ function viewHome(){
 }
 
 function viewSubject(S){
+  const quizLessons = S.units.flatMap(u=>u.lessons.filter(l=>l.quiz&&l.quiz.length));
+  const examBtn = quizLessons.length ? `<div class="panel" style="margin-bottom:16px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border:1.5px solid var(--brand)">
+      <div><b>📝 اختبار فصليّ</b><br><small style="color:var(--muted)">اختبري نفسك في عدّة دروس دفعةً واحدة (١٠ أو ١٥ سؤالاً)</small></div>
+      <button class="btn primary" onclick="examSetup('${S.id}')">ابدئي اختباراً فصليّاً</button>
+    </div>` : "";
   $("view").innerHTML = (S.note ? `<div class="panel" style="margin-bottom:16px;padding:14px 18px">
       <span style="color:var(--muted);font-size:.9rem">📌 ${esc(S.note)}</span></div>` : "")
+    + examBtn
     + `<div class="list">` + S.units.map(u=>{
     const ready = u.lessons.filter(hasContent).length;
     const done  = u.lessons.filter(l=>hasContent(l) && store.get("done_"+l.id)).length;
@@ -12364,18 +12370,72 @@ function grade(){
     if(answers[i]===q.correct) right++; else wrong.push(i+1);
   });
   const pct = Math.round(right/L.quiz.length*100);
-  track('quiz', L, {pct, right, total:L.quiz.length, wrong, subject:__subjOf[L.id]});
+  const isEx = !!L.isExam;
+  if(isEx) track('exam', L, {pct, right, total:L.quiz.length, wrong, subject:L.subject, count:L.quiz.length, lessons:L.lessons});
+  else     track('quiz', L, {pct, right, total:L.quiz.length, wrong, subject:__subjOf[L.id]});
   const pass = pct>=60;
   const s = $("score");
   s.className = "score show " + (pass?"pass":"fail");
+  const what = isEx ? "المادة" : "الدرس";
   s.innerHTML = `<b>${right} / ${L.quiz.length}</b>
-    <div>${pct}٪ — ${pass ? (pct>=90?"ممتاز! أتقنتِ الدرس 🎉":"جيّد، راجعي الأخطاء واستمرّي 👏")
-                          : "راجعي الملخّص والبطاقات ثمّ أعيدي الاختبار 💪"}</div>`;
-  const key = "best_"+L.id;
+    <div>${pct}٪ — ${pass ? (pct>=90?`ممتاز! أتقنتِ ${what} 🎉`:"جيّد، راجعي الأخطاء واستمرّي 👏")
+                          : (isEx?"راجعي الدروس ثمّ أعيدي الاختبار 💪":"راجعي الملخّص والبطاقات ثمّ أعيدي الاختبار 💪")}</div>`;
+  const key = isEx ? "exambest_"+L.subject : "best_"+L.id;
   if(!store.get(key) || pct > store.get(key)) store.set(key, pct);
   s.scrollIntoView({behavior:"smooth", block:"center"});
 }
 window.grade = grade;
+
+/* ---------- الاختبار الفصليّ ---------- */
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+let __examCount = 10;
+function examSetup(sid){
+  const S = MANHAJ.find(x=>x.id===sid); if(!S) return;
+  const lessons = S.units.flatMap(u=>u.lessons.filter(l=>l.quiz&&l.quiz.length).map(l=>({l,u})));
+  $("crumbs").innerHTML = `<a onclick="go(null)">المواد</a> ‹ <a onclick="go('${S.id}')">${esc(S.name)}</a> ‹ <span>اختبار فصليّ</span>`;
+  const totalQ = lessons.reduce((a,x)=>a+x.l.quiz.length,0);
+  $("view").innerHTML = `<div class="panel">
+    <h3 style="margin:0 0 6px;color:var(--brand)">📝 اختبار فصليّ — ${esc(S.name)}</h3>
+    <p style="color:var(--muted);font-size:.9rem;margin:0 0 16px">اختاري الدروس المشمولة ثمّ عدد الأسئلة، وسنبني اختباراً عشوائيّاً من بنك أسئلتها. (المتاح: <span class="num">${totalQ}</span> سؤالاً)</p>
+    <div style="margin-bottom:12px"><label style="cursor:pointer;font-weight:600"><input type="checkbox" id="exAll" checked onchange="exToggleAll(this.checked)"> تحديد كلّ الدروس</label></div>
+    <div id="exList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-bottom:18px">`
+    + lessons.map((x,i)=>`<label class="exrow" style="display:flex;gap:8px;align-items:center;background:#f7f8fb;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;font-size:.9rem">
+        <input type="checkbox" class="exLes" value="${x.l.id}" checked>
+        <span>${esc(x.l.name)} <small style="color:var(--muted)">(${x.l.quiz.length})</small></span></label>`).join("")
+    + `</div>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:18px">
+      <span style="font-weight:600">عدد الأسئلة:</span>
+      <label style="cursor:pointer"><input type="radio" name="exCount" value="10" checked onchange="__examCount=10"> ١٠</label>
+      <label style="cursor:pointer"><input type="radio" name="exCount" value="15" onchange="__examCount=15"> ١٥</label>
+    </div>
+    <div style="text-align:center"><button class="btn primary" onclick="startExam('${S.id}')">ابدئي الاختبار</button></div>
+    <div class="gate-err" id="exErr" style="text-align:center"></div>
+  </div>`;
+  __examCount = 10;
+  window.scrollTo(0,0);
+}
+window.examSetup = examSetup;
+function exToggleAll(on){ document.querySelectorAll(".exLes").forEach(c=>c.checked=on); }
+window.exToggleAll = exToggleAll;
+function startExam(sid){
+  const S = MANHAJ.find(x=>x.id===sid); if(!S) return;
+  const ids = [...document.querySelectorAll(".exLes")].filter(c=>c.checked).map(c=>c.value);
+  if(!ids.length){ $("exErr").textContent="اختاري درساً واحداً على الأقلّ"; return; }
+  const chosen = allLessons().filter(l=>ids.includes(l.id));
+  let pool = [];
+  chosen.forEach(l=>{ (l.quiz||[]).forEach(q=>pool.push(q)); });
+  if(!pool.length){ $("exErr").textContent="لا توجد أسئلة في الدروس المختارة"; return; }
+  const picked = shuffle(pool).slice(0, Math.min(__examCount, pool.length));
+  const L = {id:"exam-"+S.id, name:"اختبار فصليّ — "+S.name, subject:S.name, isExam:true, lessons:ids, quiz:picked};
+  $("crumbs").innerHTML = `<a onclick="go(null)">المواد</a> ‹ <a onclick="go('${S.id}')">${esc(S.name)}</a> ‹ <a onclick="examSetup('${S.id}')">اختبار فصليّ</a> ‹ <span>الأسئلة</span>`;
+  $("view").innerHTML = `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <h3 style="margin:0;color:var(--brand)">📝 اختبار فصليّ — ${esc(S.name)} <small style="color:var(--muted);font-weight:500">(${picked.length} سؤالاً)</small></h3>
+      <button class="btn" onclick="examSetup('${S.id}')">↺ اختبار جديد</button>
+    </div><div id="panel"></div></div>`;
+  renderQuiz(L);
+  window.scrollTo(0,0);
+}
+window.startExam = startExam;
 
 /* ---------- الإقلاع والبوّابة (حسابات الطلاب) ---------- */
 let __mode = "login";
