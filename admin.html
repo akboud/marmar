@@ -250,6 +250,7 @@ function pill(p){ if(p==null) return "—"; const c=p>=90?"g":p>=60?"y":"r"; ret
 /* ---------- حساب مقاييس طالب من صفوفه ---------- */
 function statsFor(rows){
   const quizzes=rows.filter(r=>r.kind==="quiz");
+  const exams=rows.filter(r=>r.kind==="exam");
   const opened=new Set(rows.filter(r=>r.kind==="open").map(r=>r.lesson_id).filter(Boolean));
   const doneState={}; rows.filter(r=>r.kind==="done").slice().reverse().forEach(r=>{doneState[r.lesson_id]=!!r.detail.done;});
   const done=new Set(Object.keys(doneState).filter(k=>doneState[k]));
@@ -260,7 +261,7 @@ function statsFor(rows){
   const buckets={}; rows.forEach(r=>{const k=dayKey(r.when);(buckets[k]=buckets[k]||new Set()).add(Math.floor(r.when.getTime()/120000));});
   let min=0; Object.values(buckets).forEach(s=>min+=s.size*2);
   const last=rows.length?rows.reduce((a,b)=>b.when>a?b.when:a,rows[0].when):null;
-  return {quizzes, opened, done, cards, avg, min, last, buckets};
+  return {quizzes, exams, opened, done, cards, avg, min, last, buckets};
 }
 
 /* ---------- نظرة عامّة: كلّ الطلاب ---------- */
@@ -346,6 +347,7 @@ function renderStudent(id){
   h+=stat("دروس فُتحت", `<span class="num">${s.opened.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
   h+=stat("دروس أُنجزت", `<span class="num">${s.done.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
   h+=stat("اختبارات", `<span class="num">${s.quizzes.length}</span>`);
+  h+=stat("اختبارات فصليّة", `<span class="num">${s.exams.length}</span>`);
   h+=stat("متوسّط العلامات", s.avg==null?"—":`<span class="num">${s.avg}٪</span>`);
   h+=stat("بطاقات روجعت", `<span class="num">${s.cards.size}</span>`);
   h+='</div>';
@@ -364,6 +366,7 @@ function renderStudent(id){
   h+='<div class="legend"><span><i class="dot" style="background:#c7d2fe"></i> فُتح الدرس</span>'
    +'<span><i class="dot" style="background:var(--brand)"></i> وُسم كمُنجَز</span></div></div>';
 
+  h+=buildExamTable(s.exams);
   h+=buildQuizTable(s.quizzes, rows);
   h+=buildLog(rows.slice(0,45));
 
@@ -372,6 +375,22 @@ function renderStudent(id){
 }
 function pickAll(){ current="all"; $("pick").value="all"; renderRoster(); }
 
+function buildExamTable(exams){
+  if(!exams.length) return "";
+  const list=exams.slice().sort((a,b)=>b.when-a.when);
+  let h='<div class="panel"><h2>📝 الاختبارات الفصليّة</h2><div class="scroll"><table><thead><tr>'
+   +'<th>المادة</th><th>العلامة</th><th>عدد الأسئلة</th><th>الدروس المشمولة</th><th>الأسئلة المُخطئة</th><th>التاريخ</th></tr></thead><tbody>';
+  list.forEach(r=>{
+    const d=r.detail||{};
+    const wt=(d.wrong&&d.wrong.length)?`<span class="wrongs">س${d.wrong.join("، س")}</span>`:"—";
+    h+=`<tr><td>${esc(r.subject||d.subject||"—")}</td><td>${pill(d.pct)}</td>
+      <td><span class="num">${d.total||d.count||"—"}</span></td>
+      <td><span class="num">${(d.lessons&&d.lessons.length)||"—"}</span></td>
+      <td>${wt}</td><td>${relTime(r.when)}</td></tr>`;
+  });
+  h+='</tbody></table></div></div>';
+  return h;
+}
 function buildQuizTable(quizzes, rows){
   if(!quizzes.length) return '<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="empty">لم يُجرِ أيّ اختبار بعد.</div></div>';
   const byLesson={};
