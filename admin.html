@@ -148,7 +148,7 @@ const SUBJECTS_T2 = [
 ];
 const CURRICULA_META = {
   "thanawi2-sci": {short:"الثاني الثانوي العلميّ", subjects:SUBJECTS_T2, total:SUBJECTS_T2.reduce((a,s)=>a+s.total,0)},
-  "i3":           {short:"التاسع",                 subjects:[],          total:0}
+  "i3":           {short:"التاسع",                 subjects:[{name:"الجبر", icon:"➗", total:19}], total:19}
 };
 const CURR_LABELS = [{id:"thanawi2-sci",label:"الثاني الثانوي العلميّ"},{id:"i3",label:"الثالث الإعداديّ (التاسع)"}];
 function metaFor(cid){ return CURRICULA_META[cid] || CURRICULA_META["thanawi2-sci"]; }
