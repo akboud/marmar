@@ -574,9 +574,22 @@ function buildPrevPanel(st, cid){
   const totMax=rows.reduce((a,r)=>a+r.max,0), totV=rows.reduce((a,r)=>a+r.v,0);
   const overall=totMax?totV/totMax*100:0;
   const anyTrend=rows.some(r=>r.trend!=null);
-  let h=`<div class="panel"><h2>📑 نتائج السنة السابقة — ${pe.title}</h2>
+  const byPct=[...rows].sort((a,b)=>a.p-b.p);
+  const weakest=byPct[0], strongest=byPct[byPct.length-1];
+  const byLost=[...rows].sort((a,b)=>b.lost-a.lost);
+  const focus=byPct.filter(r=>r.p<70);
+  let h=`<div class="panel"><h2>📑 نتائج السنة السابقة وتحليلها — ${pe.title}</h2>
     <div style="margin-bottom:10px">المعدّل العامّ: <strong style="color:${pColor(overall)}">${overall.toFixed(1)}٪</strong>
       <span style="color:var(--muted)">(${Math.round(totV)} / ${totMax})</span></div>
+    <div class="stats" style="margin-bottom:12px">
+      <div class="stat"><div class="k">أقوى مادّة</div><div class="v" style="font-size:1.05rem;color:${pColor(strongest.p)}">${esc(strongest.name)} <small>${strongest.p.toFixed(0)}٪</small></div></div>
+      <div class="stat"><div class="k">أضعف مادّة</div><div class="v" style="font-size:1.05rem;color:${pColor(weakest.p)}">${esc(weakest.name)} <small>${weakest.p.toFixed(0)}٪</small></div></div>
+      <div class="stat"><div class="k">أكبر علامة مهدورة</div><div class="v" style="font-size:1.05rem">${esc(byLost[0].name)} <small>${Math.round(byLost[0].lost)} علامة</small></div></div>
+      <div class="stat"><div class="k">مواد دون ٦٠٪</div><div class="v" style="color:${rows.filter(r=>r.p<60).length?'var(--bad)':'#16a34a'}">${rows.filter(r=>r.p<60).length}</div></div>
+    </div>
+    ${ focus.length ? `<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.92rem">
+        <strong>أين يتركّز الجهد:</strong> ابدأ بـ ${focus.map(r=>`<strong>${esc(r.name)}</strong> (${r.p.toFixed(0)}٪)`).join("، ")} — هذه الموادّ دون ٧٠٪ وكلّ نقطة فيها أثمن.</div>`
+      : `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.92rem"><strong>أداء متوازن:</strong> لا مادّة دون ٧٠٪.</div>` }
     <div class="scroll"><table><thead><tr><th>المادة</th><th>العلامة</th>${anyTrend?'<th>ف١</th><th>ف٢</th>':''}<th>النسبة</th><th>المهدور</th></tr></thead><tbody>`;
   rows.sort((a,b)=>b.lost-a.lost).forEach(r=>{
     const tr = r.trend==null?'': (r.trend>0?` <span style="color:#16a34a">▲${r.trend}</span>`:(r.trend<0?` <span style="color:var(--bad)">▼${Math.abs(r.trend)}</span>`:''));
