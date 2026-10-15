@@ -251,6 +251,14 @@
   .gate-tabs button.on{background:#fff;color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .gate-field{display:none}
   .gate-field.show{display:block}
+  /* حقل كلمة المرور مع زرّ العين */
+  .pw{position:relative;margin-bottom:9px}
+  .pw > input{margin-bottom:0 !important;padding-inline-start:42px}
+  .pw .eye{position:absolute;inset-inline-start:6px;top:50%;transform:translateY(-50%);
+    background:none;border:0;padding:6px;margin:0;width:auto;cursor:pointer;color:var(--muted);
+    display:flex;align-items:center;line-height:0}
+  .pw .eye:hover{color:var(--brand)}
+  .pw .eye svg{width:20px;height:20px;display:block}
   /* منتقي المنهاج — صفوف مُدمجة سطرٌ واحد */
   #gCurr .ttl{font-size:.85rem;color:var(--muted);margin:2px 0 6px}
   #gCurr label{display:flex;align-items:center;gap:8px;padding:8px 11px;
@@ -279,11 +287,11 @@
       <button type="button" id="tabReg" onclick="setMode('register')">حساب جديد</button>
     </div>
     <input id="gName" type="text" autocomplete="username" placeholder="الاسم">
-    <input id="gPass" type="password" autocomplete="current-password" placeholder="كلمة المرور">
+    <div class="pw"><input id="gPass" type="password" autocomplete="current-password" placeholder="كلمة المرور"><button type="button" class="eye" onclick="pwToggle(this)" aria-label="إظهار كلمة المرور"></button></div>
     <input id="gInvite" class="gate-field" type="text" placeholder="رمز الدعوة (للحساب الجديد)">
     <input id="gParentEmail" class="gate-field" type="email" autocomplete="email" placeholder="بريد وليّ الأمر الإلكترونيّ" style="direction:ltr">
-    <input id="gParent" class="gate-field" type="password" autocomplete="new-password" placeholder="كلمة مرور وليّ الأمر">
-    <input id="gParent2" class="gate-field" type="password" autocomplete="new-password" placeholder="تأكيد كلمة مرور وليّ الأمر">
+    <div class="pw gate-field" id="gParentWrap"><input id="gParent" type="password" autocomplete="new-password" placeholder="كلمة مرور وليّ الأمر"><button type="button" class="eye" onclick="pwToggle(this)" aria-label="إظهار كلمة المرور"></button></div>
+    <div class="pw gate-field" id="gParent2Wrap"><input id="gParent2" type="password" autocomplete="new-password" placeholder="تأكيد كلمة مرور وليّ الأمر"><button type="button" class="eye" onclick="pwToggle(this)" aria-label="إظهار كلمة المرور"></button></div>
     <div id="gParentHint" class="gate-field" style="font-size:.78rem;color:var(--muted);text-align:right;margin:-4px 2px 10px;line-height:1.4">كلمة مرور وبريد خاصّان بوليّ الأمر لمتابعة الطالب (غير كلمة مرور الطالب). يُرسَل إلى البريد رمز تحقّق عند أوّل دخول.</div>
     <div id="gCurr" class="gate-field" style="text-align:right;margin-bottom:12px"></div>
     <button id="gateBtn" type="submit">دخول</button>
@@ -15117,6 +15125,19 @@ function startExam(sid){
 window.startExam = startExam;
 
 /* ---------- الإقلاع والبوّابة (حسابات الطلاب) ---------- */
+/* زرّ إظهار/إخفاء كلمة المرور */
+const EYE_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+function pwToggle(btn){
+  const inp = btn.parentNode.querySelector('input'); if(!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.innerHTML = show ? EYE_OFF : EYE_ON;
+  btn.setAttribute('aria-label', show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
+}
+window.pwToggle = pwToggle;
+document.querySelectorAll('.pw .eye').forEach(b=>{ if(!b.innerHTML.trim()) b.innerHTML = EYE_ON; });
+
 let __mode = "login";
 const availCurr = () => (typeof CURRICULA!=="undefined" ? CURRICULA.filter(c=>c.subjects&&c.subjects.length) : []);
 function setMode(m){
@@ -15125,8 +15146,8 @@ function setMode(m){
   $("tabReg").classList.toggle("on", m==="register");
   $("gInvite").classList.toggle("show", m==="register");
   $("gParentEmail").classList.toggle("show", m==="register");
-  $("gParent").classList.toggle("show", m==="register");
-  $("gParent2").classList.toggle("show", m==="register");
+  $("gParentWrap").classList.toggle("show", m==="register");
+  $("gParent2Wrap").classList.toggle("show", m==="register");
   $("gParentHint").classList.toggle("show", m==="register");
   $("gateBtn").textContent = m==="register" ? "إنشاء حساب" : "دخول";
   $("gateSub").textContent = m==="register" ? "أنشئ حسابك للانضمام" : "سجّل دخولك للمتابعة";
