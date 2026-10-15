@@ -228,29 +228,38 @@
 
   /* ---- بوّابة الدخول ---- */
   #gate{position:fixed;inset:0;z-index:9999;display:none;
-    align-items:center;justify-content:center;padding:20px;
+    overflow-y:auto;padding:16px;
     background:linear-gradient(135deg,#4f46e5,#7c3aed);}
   #gate.on{display:flex}
-  .gate-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);
-    padding:30px 26px;width:100%;max-width:360px;text-align:center}
-  .gate-card .logo{font-size:2.2rem}
-  .gate-card h2{margin:10px 0 4px;color:var(--brand)}
-  .gate-card p{color:var(--muted);font-size:.92rem;margin:0 0 20px}
-  .gate-card input{width:100%;padding:13px 14px;border:1.5px solid var(--line);
-    border-radius:11px;font-size:1rem;font-family:inherit;text-align:center;
-    margin-bottom:12px;unicode-bidi:plaintext}
+  .gate-card{background:#fff;border-radius:16px;box-shadow:var(--shadow);
+    padding:20px 22px;width:100%;max-width:360px;text-align:center;margin:auto}
+  .gate-card .logo{font-size:1.7rem;line-height:1}
+  .gate-card h2{margin:6px 0 2px;color:var(--brand);font-size:1.3rem}
+  .gate-card p{color:var(--muted);font-size:.88rem;margin:0 0 12px}
+  .gate-card input{width:100%;padding:10px 14px;border:1.5px solid var(--line);
+    border-radius:10px;font-size:1rem;font-family:inherit;text-align:center;
+    margin-bottom:9px;unicode-bidi:plaintext}
   .gate-card input:focus{outline:none;border-color:var(--brand)}
-  .gate-card button{width:100%;padding:13px;border:0;border-radius:11px;
+  .gate-card button{width:100%;padding:11px;border:0;border-radius:10px;
     background:var(--brand);color:#fff;font-size:1rem;font-weight:600;
     cursor:pointer;font-family:inherit}
   .gate-card button:disabled{opacity:.6;cursor:default}
-  .gate-err{color:var(--bad);font-size:.9rem;min-height:1.2em;margin-top:6px}
-  .gate-tabs{display:flex;gap:6px;margin-bottom:18px;background:#eef0f5;border-radius:11px;padding:4px}
-  .gate-tabs button{flex:1;padding:9px;border:0;border-radius:8px;background:transparent;
+  .gate-err{color:var(--bad);font-size:.9rem;min-height:1.2em;margin-top:5px}
+  .gate-tabs{display:flex;gap:6px;margin-bottom:12px;background:#eef0f5;border-radius:10px;padding:4px}
+  .gate-tabs button{flex:1;padding:8px;border:0;border-radius:8px;background:transparent;
     color:var(--muted);font-weight:600;cursor:pointer;font-family:inherit;font-size:.92rem}
   .gate-tabs button.on{background:#fff;color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .gate-field{display:none}
   .gate-field.show{display:block}
+  /* منتقي المنهاج — صفوف مُدمجة سطرٌ واحد */
+  #gCurr .ttl{font-size:.85rem;color:var(--muted);margin:2px 0 6px}
+  #gCurr label{display:flex;align-items:center;gap:8px;padding:8px 11px;
+    border:1.5px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;
+    font-size:.9rem;line-height:1.25;transition:border-color .15s,background .15s}
+  #gCurr label:hover{border-color:#c7cbe0}
+  #gCurr label.sel{border-color:var(--brand);background:#f5f3ff}
+  #gCurr label input{width:auto;margin:0;flex:none}
+  #gCurr label span{flex:1}
   .hello{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);
     padding:6px 12px;border-radius:20px;font-size:.9rem;color:#fff}
   .hello button{background:rgba(255,255,255,.25);border:0;color:#fff;border-radius:7px;
@@ -15115,12 +15124,14 @@ function setMode(m){
   // منتقي المنهاج: يظهر في وضع الحساب الجديد فقط إذا توفّر أكثر من منهاج
   const gc=$("gCurr"); const list=availCurr();
   if(m==="register" && list.length>1){
-    gc.innerHTML = `<div style="font-size:.9rem;color:var(--muted);margin:2px 0 8px">اختر منهاجك:</div>`
-      + list.map((c,i)=>`<label style="display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer">
+    gc.innerHTML = `<div class="ttl">اختر منهاجك:</div>`
+      + list.map((c,i)=>`<label class="${i===0?'sel':''}" onclick="pickCurr(this)">
           <input type="radio" name="gCurrR" value="${c.id}" ${i===0?"checked":""}> <span>${c.icon||""} ${c.name}</span></label>`).join("");
     gc.classList.add("show");
   } else { gc.innerHTML=""; gc.classList.remove("show"); }
 }
+function pickCurr(el){ document.querySelectorAll('#gCurr label').forEach(l=>l.classList.remove('sel')); el.classList.add('sel'); const r=el.querySelector('input'); if(r) r.checked=true; }
+window.pickCurr = pickCurr;
 window.setMode = setMode;
 
 async function boot(){
