@@ -151,6 +151,15 @@ const CURRICULA_META = {
   "i3":           {short:"التاسع",                 subjects:[{name:"الجبر", icon:"➗", total:19},{name:"الهندسة", icon:"📐", total:12},{name:"العلوم", icon:"🔬", total:14},{name:"اللغة العربيّة", icon:"📖", total:14},{name:"الفيزياء والكيمياء", icon:"⚛️", total:18},{name:"اللغة الإنكليزيّة", icon:"📘", total:12}], total:89}
 };
 const CURR_LABELS = [{id:"thanawi2-sci",label:"الثاني الثانوي العلميّ"},{id:"i3",label:"الثالث الإعداديّ (التاسع)"}];
+// مواد السنة السابقة (مطابقة لـ prevExam في بيانات المنهاج) لعرض علامات الطالب
+const PREV_META = {
+  "thanawi2-sci": { title:"علامات الصف العاشر", subjects:[
+    {key:"math",name:"الرياضيات",max:400},{key:"arab",name:"اللغة العربية",max:500},{key:"eng",name:"اللغة الإنكليزية",max:300},
+    {key:"phys",name:"الفيزياء",max:200},{key:"chem",name:"الكيمياء",max:200},{key:"bio",name:"علم الأحياء",max:200} ] },
+  "i3": { title:"علامات الصف الثامن", subjects:[
+    {key:"math",name:"الرياضيات",max:100},{key:"sci",name:"العلوم",max:100},{key:"arab",name:"اللغة العربية",max:100},{key:"eng",name:"اللغة الإنكليزية",max:100} ] }
+};
+function prevMetaFor(cid){ return PREV_META[cid] || PREV_META["thanawi2-sci"]; }
 function metaFor(cid){ return CURRICULA_META[cid] || CURRICULA_META["thanawi2-sci"]; }
 function currLabel(cid){ const m=CURR_LABELS.find(c=>c.id===cid); return m?m.label:(cid||"—"); }
 
@@ -367,7 +376,8 @@ function renderStudent(id){
       ${CURR_LABELS.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${c.label}</option>`).join("")}</select>`;
   const topbar=`<div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
     <span class="backlink" onclick="pickAll()">← كلّ الطلاب</span><span style="display:flex;gap:8px;align-items:center">${currSel}</span></div>`;
-  if(!rows.length){ $("body").innerHTML=`<div class="panel">${topbar}<div class="empty">لا يوجد نشاط لـ ${esc(name)} بعد.</div></div>`; return; }
+  const prevPanel = buildPrevPanel(st, cid);
+  if(!rows.length){ $("body").innerHTML=`<div class="panel">${topbar}<div class="empty">لا يوجد نشاط لـ ${esc(name)} بعد.</div></div>`+prevPanel; return; }
   const s=statsFor(rows);
 
   let h=topbar;
@@ -397,6 +407,7 @@ function renderStudent(id){
   if(meta.subjects.length) h+='<div class="legend"><span><i class="dot" style="background:#c7d2fe"></i> فُتح الدرس</span>'
    +'<span><i class="dot" style="background:var(--brand)"></i> وُسم كمُنجَز</span></div></div>';
 
+  h+=prevPanel;
   h+=buildExamTable(s.exams);
   h+=buildQuizTable(s.quizzes, rows);
   h+=buildLog(rows.slice(0,45));
@@ -404,6 +415,45 @@ function renderStudent(id){
   $("body").innerHTML=h;
   drawTimeChart(s.buckets);
 }
+
+/* لوحة نتائج السنة السابقة (علامات + صورة عند الطلب) */
+function pPct(v,m){ return m? v/m*100 : 0; }
+function pColor(p){ return p>=85?"#16a34a":p>=70?"#65a30d":p>=60?"#d97706":"#dc2626"; }
+function buildPrevPanel(st, cid){
+  if(!st) return "";
+  const pm = st.prev_marks || null;
+  const pe = prevMetaFor(cid);
+  if(!pm || !Object.keys(pm).length){
+    return `<div class="panel"><h2>📑 نتائج السنة السابقة</h2>
+      <div class="empty">لم يُدخل الطالب علاماته بعد.${ st.has_img?` <span style="color:var(--muted)">(توجد صورة مرفقة)</span>`:"" }</div>
+      ${ st.has_img?`<div style="text-align:center;margin-top:8px"><button class="btn" onclick="loadPrevImg(${st.id})">عرض الصورة المرفقة</button></div><div id="prevImg_${st.id}" style="margin-top:10px"></div>`:"" }</div>`;
+  }
+  const rows = pe.subjects.filter(s=>pm[s.key]!=null).map(s=>{const v=+pm[s.key];const p=pPct(v,s.max);return{...s,v,p,lost:s.max-v};});
+  const totMax=rows.reduce((a,r)=>a+r.max,0), totV=rows.reduce((a,r)=>a+r.v,0);
+  const overall=totMax?totV/totMax*100:0;
+  let h=`<div class="panel"><h2>📑 نتائج السنة السابقة — ${pe.title}</h2>
+    <div style="margin-bottom:10px">المعدّل العامّ: <strong style="color:${pColor(overall)}">${overall.toFixed(1)}٪</strong>
+      <span style="color:var(--muted)">(${totV} / ${totMax})</span></div>
+    <div class="scroll"><table><thead><tr><th>المادة</th><th>العلامة</th><th>النسبة</th><th>المهدور</th></tr></thead><tbody>`;
+  rows.sort((a,b)=>b.lost-a.lost).forEach(r=>{
+    h+=`<tr><td>${esc(r.name)}</td><td><span class="num">${r.v}</span> / ${r.max}</td>
+      <td style="color:${pColor(r.p)};font-weight:600">${r.p.toFixed(1)}٪</td><td><span class="num">${r.lost}</span></td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  if(st.has_img){ h+=`<div style="text-align:center;margin-top:12px"><button class="btn" onclick="loadPrevImg(${st.id})">عرض صورة النتائج المرفقة</button></div><div id="prevImg_${st.id}" style="margin-top:10px"></div>`; }
+  h+=`</div>`;
+  return h;
+}
+async function loadPrevImg(id){
+  const box=$("prevImg_"+id); if(!box) return;
+  box.innerHTML=`<div style="color:var(--muted)">…جارٍ التحميل</div>`;
+  try{
+    const {data,error}=await client.rpc("get_prev_img",{p_admin_pass:adminPass,p_id:id});
+    if(error||!data){ box.innerHTML=`<div class="empty">تعذّر تحميل الصورة.</div>`; return; }
+    box.innerHTML=`<img src="${data}" style="max-width:100%;border:1px solid var(--line);border-radius:8px">`;
+  }catch(e){ box.innerHTML=`<div class="empty">تعذّر الاتصال.</div>`; }
+}
+window.loadPrevImg = loadPrevImg;
 function pickAll(){ current="all"; $("pick").value="all"; renderRoster(); }
 
 function buildExamTable(exams){
