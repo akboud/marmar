@@ -550,6 +550,10 @@ function renderStudent(id){
 
 /* لوحة نتائج السنة السابقة (علامات + صورة عند الطلب) */
 function pPct(v,m){ return m? v/m*100 : 0; }
+function pEff(v){ if(v==null||v==="") return null; if(typeof v==="number") return v;
+  if(typeof v==="object"){ if(v.m!=null&&v.m!=="") return +v.m; const t=[v.t1,v.t2].filter(x=>x!=null&&x!=="").map(Number); return t.length?t.reduce((a,b)=>a+b,0)/t.length:null; }
+  const n=+v; return isNaN(n)?null:n; }
+function pTerms(v){ return (v&&typeof v==="object")?{t1:(v.t1!=null&&v.t1!==""?+v.t1:null),t2:(v.t2!=null&&v.t2!==""?+v.t2:null)}:{t1:null,t2:null}; }
 function pColor(p){ return p>=85?"#16a34a":p>=70?"#65a30d":p>=60?"#d97706":"#dc2626"; }
 function buildPrevPanel(st, cid){
   if(!st) return "";
@@ -560,16 +564,21 @@ function buildPrevPanel(st, cid){
       <div class="empty">لم يُدخل الطالب علاماته بعد.${ st.has_img?` <span style="color:var(--muted)">(توجد صورة مرفقة)</span>`:"" }</div>
       ${ st.has_img?`<div style="text-align:center;margin-top:8px"><button class="btn" onclick="loadPrevImg(${st.id})">عرض الصورة المرفقة</button></div><div id="prevImg_${st.id}" style="margin-top:10px"></div>`:"" }</div>`;
   }
-  const rows = pe.subjects.filter(s=>pm[s.key]!=null).map(s=>{const v=+pm[s.key];const p=pPct(v,s.max);return{...s,v,p,lost:s.max-v};});
+  const rows = pe.subjects.map(s=>{const v=pEff(pm[s.key]); if(v==null) return null; const p=pPct(v,s.max); const tm=pTerms(pm[s.key]);
+      const trend=(tm.t1!=null&&tm.t2!=null)?(tm.t2-tm.t1):null;
+      return{...s,v,p,lost:s.max-v,t1:tm.t1,t2:tm.t2,trend};}).filter(Boolean);
   const totMax=rows.reduce((a,r)=>a+r.max,0), totV=rows.reduce((a,r)=>a+r.v,0);
   const overall=totMax?totV/totMax*100:0;
+  const anyTrend=rows.some(r=>r.trend!=null);
   let h=`<div class="panel"><h2>📑 نتائج السنة السابقة — ${pe.title}</h2>
     <div style="margin-bottom:10px">المعدّل العامّ: <strong style="color:${pColor(overall)}">${overall.toFixed(1)}٪</strong>
-      <span style="color:var(--muted)">(${totV} / ${totMax})</span></div>
-    <div class="scroll"><table><thead><tr><th>المادة</th><th>العلامة</th><th>النسبة</th><th>المهدور</th></tr></thead><tbody>`;
+      <span style="color:var(--muted)">(${Math.round(totV)} / ${totMax})</span></div>
+    <div class="scroll"><table><thead><tr><th>المادة</th><th>العلامة</th>${anyTrend?'<th>ف١</th><th>ف٢</th>':''}<th>النسبة</th><th>المهدور</th></tr></thead><tbody>`;
   rows.sort((a,b)=>b.lost-a.lost).forEach(r=>{
-    h+=`<tr><td>${esc(r.name)}</td><td><span class="num">${r.v}</span> / ${r.max}</td>
-      <td style="color:${pColor(r.p)};font-weight:600">${r.p.toFixed(1)}٪</td><td><span class="num">${r.lost}</span></td></tr>`;
+    const tr = r.trend==null?'': (r.trend>0?` <span style="color:#16a34a">▲${r.trend}</span>`:(r.trend<0?` <span style="color:var(--bad)">▼${Math.abs(r.trend)}</span>`:''));
+    h+=`<tr><td>${esc(r.name)}</td><td><span class="num">${Math.round(r.v)}</span> / ${r.max}${tr}</td>
+      ${anyTrend?`<td>${r.t1!=null?r.t1:'—'}</td><td>${r.t2!=null?r.t2:'—'}</td>`:''}
+      <td style="color:${pColor(r.p)};font-weight:600">${r.p.toFixed(1)}٪</td><td><span class="num">${Math.round(r.lost)}</span></td></tr>`;
   });
   h+=`</tbody></table></div>`;
   if(st.has_img){ h+=`<div style="text-align:center;margin-top:12px"><button class="btn" onclick="loadPrevImg(${st.id})">عرض صورة النتائج المرفقة</button></div><div id="prevImg_${st.id}" style="margin-top:10px"></div>`; }
