@@ -136,7 +136,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-const SUBJECTS = [
+// مواد كلّ منهاج وإجمالي دروسه (حدّثه عند إضافة محتوى منهاج جديد)
+const SUBJECTS_T2 = [
   {name:"الفيزياء", icon:"⚛", total:13},
   {name:"الكيمياء", icon:"⚗", total:14},
   {name:"علم الأحياء والأرض", icon:"🧬", total:26},
@@ -145,7 +146,13 @@ const SUBJECTS = [
   {name:"اللغة العربية وآدابها", icon:"📖", total:44},
   {name:"اللغة الإنكليزية", icon:"🌐", total:7}
 ];
-const TOTAL_LESSONS = SUBJECTS.reduce((a,s)=>a+s.total,0);
+const CURRICULA_META = {
+  "thanawi2-sci": {short:"الثاني الثانوي العلميّ", subjects:SUBJECTS_T2, total:SUBJECTS_T2.reduce((a,s)=>a+s.total,0)},
+  "i3":           {short:"التاسع",                 subjects:[],          total:0}
+};
+const CURR_LABELS = [{id:"thanawi2-sci",label:"الثاني الثانوي العلميّ"},{id:"i3",label:"الثالث الإعداديّ (التاسع)"}];
+function metaFor(cid){ return CURRICULA_META[cid] || CURRICULA_META["thanawi2-sci"]; }
+function currLabel(cid){ const m=CURR_LABELS.find(c=>c.id===cid); return m?m.label:(cid||"—"); }
 
 const cfg = window.MARMAR_CONFIG;
 const configured = cfg && cfg.url && cfg.anonKey
@@ -178,7 +185,16 @@ function logout(){ sessionStorage.removeItem("marmar_admin"); location.reload();
 function openDash(){ $("dash").style.display="block"; load(); }
 
 /* ---------- تحميل ---------- */
-let ALL = [], STUDENTS = [], current = "all", INVITE = "";
+let ALL = [], STUDENTS = [], current = "all", INVITE = "", currFilter = "all";
+function setCurrFilter(v){ currFilter=v; if(current==="all") renderRoster(); }
+window.setCurrFilter=setCurrFilter;
+async function changeCurr(id, v){
+  const {error}=await client.rpc("set_curriculum",{p_admin_pass:adminPass,p_id:id,p_curriculum:v});
+  if(error){ alert("تعذّر تغيير المنهاج."); return; }
+  const st=STUDENTS.find(s=>s.id===id); if(st) st.curriculum=v;
+  renderStudent(id);
+}
+window.changeCurr=changeCurr;
 async function load(){
   $("body").innerHTML = '<div class="empty">…جارٍ التحميل</div>';
   try{
@@ -302,16 +318,24 @@ function renderRoster(){
     </div>
     <div id="inviteMsg" style="color:var(--ok);font-size:.88rem;margin-top:8px;min-height:1.1em"></div></div>`;
 
-  // ترتيب حسب آخر نشاط
+  // ترتيب حسب آخر نشاط + فلترة حسب المنهاج
   perStudent.sort((a,b)=>(b.s.last?b.s.last:0)-(a.s.last?a.s.last:0));
-  h+='<div class="panel"><h2>👥 الطلاب</h2><div class="scroll"><table><thead><tr>'
-   +'<th>الطالب</th><th>آخر نشاط</th><th>دروس فُتحت</th><th>أُنجزت</th><th>اختبارات</th><th>متوسّط</th><th>وقت الدراسة</th><th></th>'
+  const shown = currFilter==="all" ? perStudent : perStudent.filter(x=>(x.st.curriculum||"thanawi2-sci")===currFilter);
+  const currOpts = ['<option value="all">كلّ المناهج</option>']
+    .concat(CURR_LABELS.map(c=>`<option value="${c.id}" ${currFilter===c.id?"selected":""}>${c.label}</option>`)).join("");
+  h+=`<div class="panel"><h2>👥 الطلاب</h2>
+    <div style="margin-bottom:12px"><label style="color:var(--muted);font-size:.9rem">تصفية حسب المنهاج: </label>
+      <select onchange="setCurrFilter(this.value)" style="padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-family:inherit">${currOpts}</select></div>
+    <div class="scroll"><table><thead><tr>`
+   +'<th>الطالب</th><th>المنهاج</th><th>آخر نشاط</th><th>دروس فُتحت</th><th>أُنجزت</th><th>اختبارات</th><th>متوسّط</th><th>وقت الدراسة</th><th></th>'
    +'</tr></thead><tbody>';
-  perStudent.forEach(({st,s})=>{
+  shown.forEach(({st,s})=>{
+    const tot=metaFor(st.curriculum).total;
     h+=`<tr class="clickable" onclick="pickAndShow(${st.id})">
       <td class="name">${esc(st.name)}</td>
+      <td><small>${esc(metaFor(st.curriculum).short)}</small></td>
       <td>${relTime(s.last)}</td>
-      <td><span class="num">${s.opened.size}</span> <small style="color:var(--muted)">/${TOTAL_LESSONS}</small></td>
+      <td><span class="num">${s.opened.size}</span> <small style="color:var(--muted)">/${tot}</small></td>
       <td><span class="num">${s.done.size}</span></td>
       <td><span class="num">${s.quizzes.length}</span></td>
       <td>${pill(s.avg)}</td>
@@ -334,18 +358,25 @@ function subjOf(rows,id){
 function renderStudent(id){
   const st=STUDENTS.find(s=>s.id===id);
   const name=st?st.name:"طالب";
-  $("hsub").textContent="الطالب: "+name;
+  const cid=st?(st.curriculum||"thanawi2-sci"):"thanawi2-sci";
+  const meta=metaFor(cid);
+  $("hsub").textContent="الطالب: "+name+" · "+meta.short;
   const rows=ALL.filter(r=>r.student_id===id);
-  if(!rows.length){ $("body").innerHTML=`<div class="panel"><div class="backlink" onclick="pickAll()">← كلّ الطلاب</div><div class="empty">لا يوجد نشاط لـ ${esc(name)} بعد.</div></div>`; return; }
+  const currSel=`<span style="color:var(--muted);font-size:.85rem">المنهاج:</span>
+    <select onchange="changeCurr(${id},this.value)" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.85rem">
+      ${CURR_LABELS.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${c.label}</option>`).join("")}</select>`;
+  const topbar=`<div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <span class="backlink" onclick="pickAll()">← كلّ الطلاب</span><span style="display:flex;gap:8px;align-items:center">${currSel}</span></div>`;
+  if(!rows.length){ $("body").innerHTML=`<div class="panel">${topbar}<div class="empty">لا يوجد نشاط لـ ${esc(name)} بعد.</div></div>`; return; }
   const s=statsFor(rows);
 
-  let h=`<div style="margin-bottom:14px"><span class="backlink" onclick="pickAll()">← كلّ الطلاب</span></div>`;
+  let h=topbar;
   h+='<div class="stats">';
   h+=stat("آخر نشاط", relTime(s.last));
   h+=stat("أيام نشطة", `<span class="num">${Object.keys(s.buckets).length}</span>`);
   h+=stat("وقت الدراسة التقريبي", fmtDur(s.min));
-  h+=stat("دروس فُتحت", `<span class="num">${s.opened.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
-  h+=stat("دروس أُنجزت", `<span class="num">${s.done.size}</span> <small>/ ${TOTAL_LESSONS}</small>`);
+  h+=stat("دروس فُتحت", `<span class="num">${s.opened.size}</span> <small>/ ${meta.total}</small>`);
+  h+=stat("دروس أُنجزت", `<span class="num">${s.done.size}</span> <small>/ ${meta.total}</small>`);
   h+=stat("اختبارات", `<span class="num">${s.quizzes.length}</span>`);
   h+=stat("اختبارات فصليّة", `<span class="num">${s.exams.length}</span>`);
   h+=stat("متوسّط العلامات", s.avg==null?"—":`<span class="num">${s.avg}٪</span>`);
@@ -354,8 +385,8 @@ function renderStudent(id){
 
   h+='<div class="panel"><h2>⏱ وقت الدراسة اليوميّ (آخر ١٤ يوماً)</h2><canvas id="timeChart" height="110"></canvas></div>';
 
-  h+='<div class="panel"><h2>📚 التقدّم حسب المادة</h2>';
-  SUBJECTS.forEach(sub=>{
+  h+= meta.subjects.length ? '<div class="panel"><h2>📚 التقدّم حسب المادة</h2>' : '';
+  (meta.subjects||[]).forEach(sub=>{
     const o=[...s.opened].filter(id=>subjOf(rows,id)===sub.name).length;
     const d=[...s.done].filter(id=>subjOf(rows,id)===sub.name).length;
     const op=Math.round(o/sub.total*100), dp=Math.round(d/sub.total*100);
@@ -363,7 +394,7 @@ function renderStudent(id){
       <span class="val">فُتح <span class="num">${o}</span> · أُنجز <span class="num">${d}</span> · من <span class="num">${sub.total}</span></span></div>
       <div class="track"><div class="open" style="width:${op}%"></div><div class="done" style="width:${dp}%"></div></div></div>`;
   });
-  h+='<div class="legend"><span><i class="dot" style="background:#c7d2fe"></i> فُتح الدرس</span>'
+  if(meta.subjects.length) h+='<div class="legend"><span><i class="dot" style="background:#c7d2fe"></i> فُتح الدرس</span>'
    +'<span><i class="dot" style="background:var(--brand)"></i> وُسم كمُنجَز</span></div></div>';
 
   h+=buildExamTable(s.exams);

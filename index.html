@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-13 · لا تحتاج إنترنت -->
+<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-15 · لا تحتاج إنترنت -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>منصة مرمر — الصف الثاني الثانوي / العلمي</title>
@@ -272,6 +272,7 @@
     <input id="gName" type="text" autocomplete="username" placeholder="الاسم">
     <input id="gPass" type="password" autocomplete="current-password" placeholder="كلمة المرور">
     <input id="gInvite" class="gate-field" type="text" placeholder="رمز الدعوة (للحساب الجديد)">
+    <div id="gCurr" class="gate-field" style="text-align:right;margin-bottom:12px"></div>
     <button id="gateBtn" type="submit">دخول</button>
     <div class="gate-err" id="gateErr"></div>
   </form>
@@ -354,7 +355,7 @@ const GRADES10 = {
   ]
 };
 
-const MANHAJ = [
+const SUBJ_THANAWI2 = [
 
 /* ================= الفيزياء ================= */
 {
@@ -11638,6 +11639,16 @@ const MANHAJ = [
 
 ];
 
+/* ===================================================================
+   المناهج — بنية متعدّدة الصفوف (يسهُل إضافة صفّ جديد: أضِف منهاجاً هنا)
+   subjects فارغة = «قيد الإعداد» (لا يظهر للاختيار حتى يصبح له محتوى)
+   =================================================================== */
+const CURRICULA = [
+  { id:"thanawi2-sci", name:"الثاني الثانوي — الفرع العلمي", short:"الثاني الثانوي العلميّ", icon:"🎓", subjects: SUBJ_THANAWI2 },
+  { id:"i3",           name:"الثالث الإعداديّ (التاسع)",      short:"التاسع",                icon:"📗", subjects: [] }
+];
+let MANHAJ = SUBJ_THANAWI2;   // المنهاج النشط (يُضبط حسب الطالب عند الدخول)
+
 </script>
 <script>
 /* ---------- تخزين التقدّم (معزول لكلّ طالب على الجهاز) ---------- */
@@ -11672,27 +11683,28 @@ const CLOUD = (() => {
   const valid = cfg && cfg.url && cfg.anonKey
     && !/ضع-هنا/.test(cfg.url) && !/ضع-هنا/.test(cfg.anonKey)
     && typeof window.supabase !== "undefined";
-  let client = null, sid = null, sname = null, pass = null;
+  let client = null, sid = null, sname = null, pass = null, curr = null;
   const SKEY = "marmar_sess_v1";
   if (valid) { try { client = window.supabase.createClient(cfg.url, cfg.anonKey); } catch(e){ client = null; } }
 
-  function save(){ try{ localStorage.setItem(SKEY, JSON.stringify({sid,sname,pass})); }catch(e){} }
+  function save(){ try{ localStorage.setItem(SKEY, JSON.stringify({sid,sname,pass,curr})); }catch(e){} }
   function saved(){ try{ return JSON.parse(localStorage.getItem(SKEY)||"null"); }catch(e){ return null; } }
 
   async function login(name, p){
     if(!client) return {ok:false,err:"غير متاح"};
     try{
       const {data,error} = await client.rpc("login_student",{p_name:name,p_pass:p});
-      if(error || !data) return {ok:false,err:"الاسم أو كلمة المرور غير صحيحة"};
-      sid = data; sname = (name||"").trim(); pass = p; save(); return {ok:true};
+      if(error || !data || !data.length) return {ok:false,err:"الاسم أو كلمة المرور غير صحيحة"};
+      sid = data[0].id; curr = data[0].curriculum || "thanawi2-sci";
+      sname = (name||"").trim(); pass = p; save(); return {ok:true};
     }catch(e){ return {ok:false,err:"تعذّر الاتصال"}; }
   }
-  async function register(name, p, invite){
+  async function register(name, p, invite, curriculum){
     if(!client) return {ok:false,err:"غير متاح"};
     try{
-      const {data,error} = await client.rpc("register_student",{p_invite:invite,p_name:name,p_pass:p});
+      const {data,error} = await client.rpc("register_student",{p_invite:invite,p_name:name,p_pass:p,p_curriculum:curriculum||"thanawi2-sci"});
       if(error) return {ok:false,err:regErr(error)};
-      sid = data; sname = (name||"").trim(); pass = p; save(); return {ok:true};
+      sid = data; curr = curriculum||"thanawi2-sci"; sname = (name||"").trim(); pass = p; save(); return {ok:true};
     }catch(e){ return {ok:false,err:"تعذّر الاتصال"}; }
   }
   function regErr(e){
@@ -11723,7 +11735,7 @@ const CLOUD = (() => {
     enabled: () => !!client,
     login, register, resume, track,
     logout(){ try{ localStorage.removeItem(SKEY); }catch(e){} },
-    get sid(){ return sid; }, get sname(){ return sname; }
+    get sid(){ return sid; }, get sname(){ return sname; }, get curriculum(){ return curr; }
   };
 })();
 window.track = (k, L, d) => CLOUD.track(k, L, d);
@@ -11857,6 +11869,10 @@ function render(){
   if(L) return viewLesson(S,U,L);
   if(U) return viewUnit(S,U);
   if(S) return viewSubject(S);
+  if(!MANHAJ.length){ $("crumbs").innerHTML=""; $("view").innerHTML =
+    `<div class="panel"><div class="empty"><div class="ic">📗</div>
+      <h3 style="margin:12px 0 6px">${esc((window.__CURR&&window.__CURR.name)||"هذا المنهاج")}</h3>
+      <p>قيد الإعداد — سيتوفّر محتواه قريباً إن شاء الله.</p></div></div>`; return; }
   return viewHome();
 }
 
@@ -12439,6 +12455,7 @@ window.startExam = startExam;
 
 /* ---------- الإقلاع والبوّابة (حسابات الطلاب) ---------- */
 let __mode = "login";
+const availCurr = () => (typeof CURRICULA!=="undefined" ? CURRICULA.filter(c=>c.subjects&&c.subjects.length) : []);
 function setMode(m){
   __mode = m;
   $("tabLogin").classList.toggle("on", m==="login");
@@ -12447,11 +12464,19 @@ function setMode(m){
   $("gateBtn").textContent = m==="register" ? "إنشاء حساب" : "دخول";
   $("gateSub").textContent = m==="register" ? "أنشئ حسابك للانضمام" : "سجّل دخولك للمتابعة";
   $("gateErr").textContent = "";
+  // منتقي المنهاج: يظهر في وضع الحساب الجديد فقط إذا توفّر أكثر من منهاج
+  const gc=$("gCurr"); const list=availCurr();
+  if(m==="register" && list.length>1){
+    gc.innerHTML = `<div style="font-size:.9rem;color:var(--muted);margin:2px 0 8px">اختر منهاجك:</div>`
+      + list.map((c,i)=>`<label style="display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer">
+          <input type="radio" name="gCurrR" value="${c.id}" ${i===0?"checked":""}> <span>${c.icon||""} ${c.name}</span></label>`).join("");
+    gc.classList.add("show");
+  } else { gc.innerHTML=""; gc.classList.remove("show"); }
 }
 window.setMode = setMode;
 
 async function boot(){
-  if(!CLOUD.enabled()){ store.load("local"); render(); return; }  // نسخة الملف الواحد: بلا بوّابة
+  if(!CLOUD.enabled()){ MANHAJ = CURRICULA[0].subjects; store.load("local"); go(null); return; }  // الملف الواحد: بلا بوّابة
   if(await CLOUD.resume()){ enter(); return; }                    // جلسة محفوظة صالحة
   showGate();
 }
@@ -12465,16 +12490,25 @@ function showGate(){
     if(!name || !pw){ err.textContent="أدخل الاسم وكلمة المرور"; return; }
     btn.disabled=true; err.textContent="…";
     let r;
-    if(__mode==="register"){ r = await CLOUD.register(name, pw, $("gInvite").value.trim()); }
+    if(__mode==="register"){
+      const sel = document.querySelector('input[name="gCurrR"]:checked');
+      const curriculum = sel ? sel.value : ((availCurr()[0]||{}).id || "thanawi2-sci");
+      r = await CLOUD.register(name, pw, $("gInvite").value.trim(), curriculum);
+    }
     else { r = await CLOUD.login(name, pw); }
     if(r.ok){ g.classList.remove("on"); enter(); }
     else { err.textContent = r.err; btn.disabled=false; }
   });
 }
 function enter(){
+  const c = CURRICULA.find(x=>x.id===CLOUD.curriculum) || CURRICULA[0];
+  MANHAJ = c.subjects;                 // تحميل المنهاج النشط للطالب
+  window.__CURR = c;
   store.load(CLOUD.sid || "anon");     // تقدّم معزول لهذا الطالب
-  const h=$("hello"); if(h){ h.style.display=""; $("helloName").textContent = "مرحباً " + (CLOUD.sname||""); }
-  render();
+  const h=$("hello"); if(h){ h.style.display=""; $("helloName").textContent = "مرحباً " + (CLOUD.sname||"") + " · " + (c.short||""); }
+  const ns=$("navStats"); if(ns) ns.style.display = (CLOUD.sname==="مرمر") ? "" : "none"; // تحليل أداء الصف العاشر خاصّ بمرمر
+  const np=$("navPlan");  if(np) np.style.display = (c.id==="thanawi2-sci") ? "" : "none"; // الخطة خاصّة بالثاني الثانوي
+  go(null);
   track('ping', null, {});
   setInterval(()=>{ if(document.visibilityState==='visible') track('ping', null, {}); }, 120000);
 }
