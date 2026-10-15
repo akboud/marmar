@@ -88,6 +88,10 @@
     color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit}
   .gate-card button:disabled{opacity:.6}
   .gate-err{color:var(--bad);font-size:.9rem;min-height:1.2em;margin-top:6px}
+  .gate-tabs{display:flex;gap:6px;margin-bottom:16px;background:#eef0f5;border-radius:11px;padding:4px}
+  .gate-tabs button{flex:1;padding:9px;border:0;border-radius:8px;background:transparent;
+    color:var(--muted);font-weight:600;cursor:pointer;font-family:inherit;font-size:.92rem;width:auto;margin:0}
+  .gate-tabs button.on{background:#fff;color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   #setup{max-width:1050px;margin:40px auto;padding:22px;display:none}
   code{background:#eef0f5;padding:2px 6px;border-radius:5px;direction:ltr;unicode-bidi:plaintext;display:inline-block;font-size:.88rem}
 </style>
@@ -97,9 +101,14 @@
 <div id="gate">
   <form class="gate-card" id="gateForm" onsubmit="return false">
     <div class="logo">🔐</div>
-    <h2>لوحة المدير</h2>
-    <p>أدخل كلمة مرور المدير</p>
-    <input id="gatePass" type="password" autocomplete="current-password" placeholder="كلمة المرور">
+    <h2>لوحة المتابعة</h2>
+    <p id="gateSub">أدخل كلمة مرور المدير</p>
+    <div class="gate-tabs">
+      <button type="button" id="tabAdmin" class="on" onclick="setRole('admin')">مدير الموقع</button>
+      <button type="button" id="tabParent" onclick="setRole('parent')">وليّ الأمر</button>
+    </div>
+    <input id="gateName" type="text" placeholder="اسم الطالب" style="display:none">
+    <input id="gatePass" type="password" autocomplete="current-password" placeholder="كلمة مرور المدير">
     <button id="gateBtn" type="submit">دخول</button>
     <div class="gate-err" id="gateErr"></div>
   </form>
@@ -119,12 +128,12 @@
       <div class="sub" id="hsub">منصة مرمر</div>
     </div>
     <div class="actions">
-      <button onclick="load()">↻ تحديث</button>
+      <button onclick="refresh()">↻ تحديث</button>
       <button onclick="logout()">خروج</button>
     </div>
   </header>
   <main>
-    <div class="pickbar">
+    <div class="pickbar" id="pickbar">
       <label for="pick">الطالب:</label>
       <select id="pick" onchange="selectStudent(this.value)"></select>
     </div>
@@ -169,29 +178,77 @@ const configured = cfg && cfg.url && cfg.anonKey
   && typeof window.supabase !== "undefined";
 let client = configured ? window.supabase.createClient(cfg.url, cfg.anonKey) : null;
 let adminPass = null;
+let role = "admin";          // "admin" | "parent"
+let parentPass = null, parentCtx = null;   // سياق وليّ الأمر (طالب واحد)
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function setRole(r){
+  role = r;
+  $("tabAdmin").classList.toggle("on", r==="admin");
+  $("tabParent").classList.toggle("on", r==="parent");
+  $("gateName").style.display = r==="parent" ? "" : "none";
+  $("gatePass").placeholder = r==="parent" ? "كلمة مرور وليّ الأمر" : "كلمة مرور المدير";
+  $("gateSub").textContent = r==="parent" ? "ادخل لمتابعة ابنك: اسم الطالب وكلمة مرور وليّ الأمر" : "أدخل كلمة مرور المدير";
+  $("gateErr").textContent = "";
+}
+window.setRole = setRole;
 
 function start(){
   if(!configured){ $("gate").classList.add("off"); $("setup").style.display="block"; return; }
   const saved = sessionStorage.getItem("marmar_admin");
-  if(saved){ adminPass = saved; openDash(); }
+  if(saved){ adminPass = saved; role="admin"; openDash(); return; }
+  const ps = sessionStorage.getItem("marmar_parent");
+  if(ps){ try{ const o=JSON.parse(ps); parentPass=o.pass; parentCtx=o.ctx; role="parent"; openDash(); }catch(e){} }
 }
 $("gateForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const p = $("gatePass").value.trim(); if(!p) return;
   $("gateBtn").disabled = true; $("gateErr").textContent = "…";
-  const ok = await tryPass(p);
-  if(ok){ adminPass = p; sessionStorage.setItem("marmar_admin", p);
-          $("gate").classList.add("off"); openDash(); }
-  else { $("gateErr").textContent = "كلمة المرور غير صحيحة"; $("gateBtn").disabled=false; $("gatePass").select(); }
+  if(role==="parent"){
+    const nm = $("gateName").value.trim();
+    if(!nm){ $("gateErr").textContent="أدخل اسم الطالب"; $("gateBtn").disabled=false; return; }
+    const ctx = await tryParent(nm, p);
+    if(ctx){ parentPass=p; parentCtx=ctx; sessionStorage.setItem("marmar_parent", JSON.stringify({pass:p,ctx}));
+             $("gate").classList.add("off"); openDash(); }
+    else { $("gateErr").textContent="اسم الطالب أو كلمة مرور وليّ الأمر غير صحيحة"; $("gateBtn").disabled=false; $("gatePass").select(); }
+  } else {
+    const ok = await tryPass(p);
+    if(ok){ adminPass = p; sessionStorage.setItem("marmar_admin", p);
+            $("gate").classList.add("off"); openDash(); }
+    else { $("gateErr").textContent = "كلمة المرور غير صحيحة"; $("gateBtn").disabled=false; $("gatePass").select(); }
+  }
 });
 async function tryPass(p){
   try{ const {error} = await client.rpc("get_activity",{p_admin_pass:p}); return !error; }
   catch(e){ return false; }
 }
-function logout(){ sessionStorage.removeItem("marmar_admin"); location.reload(); }
-function openDash(){ $("dash").style.display="block"; load(); }
+async function tryParent(name, p){
+  try{ const {data,error} = await client.rpc("parent_login",{p_name:name,p_parent_pass:p});
+    if(error || !data || !data.length) return null; return data[0];
+  }catch(e){ return null; }
+}
+function logout(){ sessionStorage.removeItem("marmar_admin"); sessionStorage.removeItem("marmar_parent"); location.reload(); }
+function openDash(){
+  $("dash").style.display="block";
+  const pb=$("pickbar"); if(pb) pb.style.display = role==="parent" ? "none" : "";
+  if(role==="parent"){ $("dash").querySelector("h1").textContent="👪 متابعة ابنك"; loadParent(); }
+  else load();
+}
+function refresh(){ role==="parent" ? loadParent() : load(); }
+window.refresh = refresh;
+
+async function loadParent(){
+  $("body").innerHTML = '<div class="empty">…جارٍ التحميل</div>';
+  try{
+    const {data,error} = await client.rpc("get_student_activity",{p_id:parentCtx.id,p_parent_pass:parentPass});
+    if(error){ $("body").innerHTML='<div class="empty">تعذّر الجلب — تحقّق من الاتصال.</div>'; return; }
+    ALL = (data||[]).map(r=>({...r, detail:r.detail||{}, when:new Date(r.ts)}));
+    STUDENTS = [{id:parentCtx.id, name:parentCtx.name, curriculum:parentCtx.curriculum, prev_marks:parentCtx.prev_marks, has_img:parentCtx.has_img, has_parent:true}];
+    current = parentCtx.id;
+    renderStudent(parentCtx.id);
+  }catch(e){ $("body").innerHTML='<div class="empty">تعذّر الاتصال بقاعدة البيانات.</div>'; }
+}
 
 /* ---------- تحميل ---------- */
 let ALL = [], STUDENTS = [], current = "all", INVITE = "", currFilter = "all";
@@ -371,13 +428,16 @@ function renderStudent(id){
   const meta=metaFor(cid);
   $("hsub").textContent="الطالب: "+name+" · "+meta.short;
   const rows=ALL.filter(r=>r.student_id===id);
-  const currSel=`<span style="color:var(--muted);font-size:.85rem">المنهاج:</span>
+  const isAdmin = role==="admin";
+  const currSel = isAdmin ? `<span style="color:var(--muted);font-size:.85rem">المنهاج:</span>
     <select onchange="changeCurr(${id},this.value)" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.85rem">
-      ${CURR_LABELS.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${c.label}</option>`).join("")}</select>`;
-  const topbar=`<div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-    <span class="backlink" onclick="pickAll()">← كلّ الطلاب</span><span style="display:flex;gap:8px;align-items:center">${currSel}</span></div>`;
+      ${CURR_LABELS.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${c.label}</option>`).join("")}</select>` : "";
+  const topbar = isAdmin
+    ? `<div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <span class="backlink" onclick="pickAll()">← كلّ الطلاب</span><span style="display:flex;gap:8px;align-items:center">${currSel}</span></div>`
+    : `<div style="margin-bottom:14px;color:var(--muted);font-size:.9rem">👋 متابعة ابنك — عرضٌ للاطّلاع فقط.</div>`;
   const prevPanel = buildPrevPanel(st, cid);
-  if(!rows.length){ $("body").innerHTML=`<div class="panel">${topbar}<div class="empty">لا يوجد نشاط لـ ${esc(name)} بعد.</div></div>`+prevPanel; return; }
+  if(!rows.length){ $("body").innerHTML=`<div class="panel">${topbar}<div class="empty">لا يوجد نشاط لـ ${esc(name)} بعد.</div></div>`+prevPanel+(isAdmin?buildParentAccess(st):""); return; }
   const s=statsFor(rows);
 
   let h=topbar;
@@ -408,6 +468,7 @@ function renderStudent(id){
    +'<span><i class="dot" style="background:var(--brand)"></i> وُسم كمُنجَز</span></div></div>';
 
   h+=prevPanel;
+  if(isAdmin) h+=buildParentAccess(st);
   h+=buildExamTable(s.exams);
   h+=buildQuizTable(s.quizzes, rows);
   h+=buildLog(rows.slice(0,45));
@@ -448,12 +509,42 @@ async function loadPrevImg(id){
   const box=$("prevImg_"+id); if(!box) return;
   box.innerHTML=`<div style="color:var(--muted)">…جارٍ التحميل</div>`;
   try{
-    const {data,error}=await client.rpc("get_prev_img",{p_admin_pass:adminPass,p_id:id});
+    const {data,error} = role==="parent"
+      ? await client.rpc("get_student_img",{p_id:id,p_parent_pass:parentPass})
+      : await client.rpc("get_prev_img",{p_admin_pass:adminPass,p_id:id});
     if(error||!data){ box.innerHTML=`<div class="empty">تعذّر تحميل الصورة.</div>`; return; }
     box.innerHTML=`<img src="${data}" style="max-width:100%;border:1px solid var(--line);border-radius:8px">`;
   }catch(e){ box.innerHTML=`<div class="empty">تعذّر الاتصال.</div>`; }
 }
 window.loadPrevImg = loadPrevImg;
+
+/* لوحة إدارة كلمة مرور وليّ الأمر (للمدير فقط) */
+function buildParentAccess(st){
+  if(!st) return "";
+  const has = st.has_parent;
+  return `<div class="panel"><h2>👪 دخول وليّ الأمر</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin:0 0 10px">
+      ${ has ? "لهذا الطالب كلمة مرور وليّ أمر مفعّلة. يدخل الوليّ من تبويب «وليّ الأمر» باسم الطالب وهذه الكلمة."
+             : "لا توجد كلمة مرور وليّ أمر لهذا الطالب بعد." }
+      يمكنك ضبطها أو تغييرها هنا:</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input id="ppw_${st.id}" type="text" placeholder="كلمة مرور وليّ الأمر الجديدة" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;direction:ltr;unicode-bidi:plaintext">
+      <button onclick="setParentPass(${st.id})" style="padding:9px 16px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer;font-family:inherit">حفظ</button>
+    </div>
+    <div id="ppwMsg_${st.id}" style="font-size:.85rem;margin-top:8px;min-height:1.1em"></div></div>`;
+}
+async function setParentPass(id){
+  const v=$("ppw_"+id).value.trim(); const msg=$("ppwMsg_"+id);
+  if(v.length<4){ msg.style.color="var(--bad)"; msg.textContent="الكلمة قصيرة (٤ أحرف على الأقلّ)"; return; }
+  msg.style.color="var(--muted)"; msg.textContent="…جارٍ الحفظ";
+  try{
+    const {error}=await client.rpc("set_parent_pass",{p_admin_pass:adminPass,p_id:id,p_pass:v});
+    if(error){ msg.style.color="var(--bad)"; msg.textContent="تعذّر الحفظ."; return; }
+    const st=STUDENTS.find(s=>s.id===id); if(st) st.has_parent=true;
+    msg.style.color="#16a34a"; msg.textContent="✓ حُفظت كلمة مرور وليّ الأمر."; $("ppw_"+id).value="";
+  }catch(e){ msg.style.color="var(--bad)"; msg.textContent="تعذّر الاتصال."; }
+}
+window.setParentPass = setParentPass;
 function pickAll(){ current="all"; $("pick").value="all"; renderRoster(); }
 
 function buildExamTable(exams){

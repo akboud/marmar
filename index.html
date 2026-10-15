@@ -281,6 +281,9 @@
     <input id="gName" type="text" autocomplete="username" placeholder="الاسم">
     <input id="gPass" type="password" autocomplete="current-password" placeholder="كلمة المرور">
     <input id="gInvite" class="gate-field" type="text" placeholder="رمز الدعوة (للحساب الجديد)">
+    <input id="gParent" class="gate-field" type="password" autocomplete="new-password" placeholder="كلمة مرور وليّ الأمر">
+    <input id="gParent2" class="gate-field" type="password" autocomplete="new-password" placeholder="تأكيد كلمة مرور وليّ الأمر">
+    <div id="gParentHint" class="gate-field" style="font-size:.78rem;color:var(--muted);text-align:right;margin:-4px 2px 10px;line-height:1.4">كلمة مرور خاصّة بوليّ الأمر لمتابعة الطالب (غير كلمة مرور الطالب).</div>
     <div id="gCurr" class="gate-field" style="text-align:right;margin-bottom:12px"></div>
     <button id="gateBtn" type="submit">دخول</button>
     <div class="gate-err" id="gateErr"></div>
@@ -14092,10 +14095,10 @@ const CLOUD = (() => {
       sname = (name||"").trim(); pass = p; save(); return {ok:true};
     }catch(e){ return {ok:false,err:"تعذّر الاتصال"}; }
   }
-  async function register(name, p, invite, curriculum){
+  async function register(name, p, invite, curriculum, parentPass){
     if(!client) return {ok:false,err:"غير متاح"};
     try{
-      const {data,error} = await client.rpc("register_student",{p_invite:invite,p_name:name,p_pass:p,p_curriculum:curriculum||"thanawi2-sci"});
+      const {data,error} = await client.rpc("register_student",{p_invite:invite,p_name:name,p_pass:p,p_curriculum:curriculum||"thanawi2-sci",p_parent_pass:parentPass});
       if(error) return {ok:false,err:regErr(error)};
       sid = data; curr = curriculum||"thanawi2-sci"; sname = (name||"").trim(); pass = p;
       prevMarks = null; justReg = true; save(); return {ok:true};
@@ -14113,6 +14116,7 @@ const CLOUD = (() => {
     const m = ((e&&e.message)||"")+"";
     if(/bad_invite/.test(m))  return "رمز الدعوة غير صحيح";
     if(/name_taken/.test(m))  return "الاسم مستخدَم، اختر اسماً آخر";
+    if(/weak_parent/.test(m)) return "كلمة مرور وليّ الأمر قصيرة (٤ أحرف على الأقل)";
     if(/weak_pass/.test(m))   return "كلمة المرور قصيرة (٤ أحرف على الأقل)";
     if(/bad_name/.test(m))    return "اكتب اسماً صحيحاً";
     return "تعذّر إنشاء الحساب";
@@ -15118,6 +15122,9 @@ function setMode(m){
   $("tabLogin").classList.toggle("on", m==="login");
   $("tabReg").classList.toggle("on", m==="register");
   $("gInvite").classList.toggle("show", m==="register");
+  $("gParent").classList.toggle("show", m==="register");
+  $("gParent2").classList.toggle("show", m==="register");
+  $("gParentHint").classList.toggle("show", m==="register");
   $("gateBtn").textContent = m==="register" ? "إنشاء حساب" : "دخول";
   $("gateSub").textContent = m==="register" ? "أنشئ حسابك للانضمام" : "سجّل دخولك للمتابعة";
   $("gateErr").textContent = "";
@@ -15150,9 +15157,12 @@ function showGate(){
     btn.disabled=true; err.textContent="…";
     let r;
     if(__mode==="register"){
+      const pp = $("gParent").value, pp2 = $("gParent2").value;
+      if(pp.length < 4){ err.textContent="كلمة مرور وليّ الأمر قصيرة (٤ أحرف على الأقلّ)"; btn.disabled=false; return; }
+      if(pp !== pp2){ err.textContent="كلمتا مرور وليّ الأمر غير متطابقتين"; btn.disabled=false; return; }
       const sel = document.querySelector('input[name="gCurrR"]:checked');
       const curriculum = sel ? sel.value : ((availCurr()[0]||{}).id || "thanawi2-sci");
-      r = await CLOUD.register(name, pw, $("gInvite").value.trim(), curriculum);
+      r = await CLOUD.register(name, pw, $("gInvite").value.trim(), curriculum, pp);
     }
     else { r = await CLOUD.login(name, pw); }
     if(r.ok){ g.classList.remove("on"); enter(); }
