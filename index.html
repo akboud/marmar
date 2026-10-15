@@ -14031,14 +14031,18 @@ const SUBJ_I3 = [
    و targets تربط كلّ مادّة بمواد المنهاج الحالي التي تتنبّأ بها (لبناء الخطة). */
 const CURRICULA = [
   { id:"thanawi2-sci", name:"الثاني الثانوي — الفرع العلمي", short:"الثاني الثانوي العلميّ", icon:"🎓", subjects: SUBJ_THANAWI2,
-    prevExam:{ title:"علامات الصف العاشر (الأول الثانوي)", hint:"أدخل علاماتك الفعلية من الشهادة/الجلاء المدرسي.",
+    prevExam:{ title:"علامات الصف العاشر (الأول الثانوي)", hint:"أدخل علاماتك الفعلية من الشهادة/الجلاء المدرسي (نفس مواد الجلاء).",
       subjects:[
-        { key:"math", name:"الرياضيات",        max:400, targets:["math1","math2"] },
-        { key:"arab", name:"اللغة العربية",     max:500, targets:["arab"] },
-        { key:"eng",  name:"اللغة الإنكليزية",  max:300, targets:["eng"] },
-        { key:"phys", name:"الفيزياء",          max:200, targets:["phys"] },
-        { key:"chem", name:"الكيمياء",          max:200, targets:["chem"] },
-        { key:"bio",  name:"علم الأحياء",       max:200, targets:["bio"] }
+        { key:"math",     name:"الرياضيات",                 max:400, targets:["math1","math2"] },
+        { key:"phys",     name:"الفيزياء",                  max:200, targets:["phys"] },
+        { key:"chem",     name:"الكيمياء",                  max:200, targets:["chem"] },
+        { key:"bio",      name:"علم الأحياء",               max:200, targets:["bio"] },
+        { key:"arab",     name:"اللغة العربية",             max:500, targets:["arab"] },
+        { key:"eng",      name:"اللغة الإنكليزية",          max:300, targets:["eng"] },
+        { key:"french",   name:"اللغة الأجنبية (الثانية)",  max:300, targets:[] },
+        { key:"philo",    name:"الفلسفة والعلوم الإنسانية", max:200, targets:[] },
+        { key:"religion", name:"التربية الدينية",           max:200, targets:[] },
+        { key:"it",       name:"تكنولوجيا المعلومات",       max:200, targets:[] }
       ] } },
   { id:"i3",           name:"الثالث الإعداديّ (التاسع)",      short:"التاسع",                icon:"📗", subjects: SUBJ_I3,
     prevExam:{ title:"علامات الصف الثامن", hint:"أدخل علاماتك الفعلية من نهاية العام الماضي.",
