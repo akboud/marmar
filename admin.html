@@ -107,9 +107,18 @@
       <button type="button" id="tabAdmin" class="on" onclick="setRole('admin')">مدير الموقع</button>
       <button type="button" id="tabParent" onclick="setRole('parent')">وليّ الأمر</button>
     </div>
-    <input id="gateName" type="text" placeholder="اسم الطالب" style="display:none">
-    <input id="gatePass" type="password" autocomplete="current-password" placeholder="كلمة مرور المدير">
-    <button id="gateBtn" type="submit">دخول</button>
+    <div id="credBox">
+      <input id="gateName" type="text" placeholder="اسم الطالب" style="display:none">
+      <input id="gatePass" type="password" autocomplete="current-password" placeholder="كلمة مرور المدير">
+      <button id="gateBtn" type="submit">دخول</button>
+    </div>
+    <div id="otpBox" style="display:none">
+      <p id="otpMsg" style="color:var(--muted);font-size:.9rem;margin:0 0 12px">أرسلنا رمز تحقّق إلى بريد وليّ الأمر.</p>
+      <input id="otpCode" type="text" inputmode="numeric" maxlength="6" placeholder="● ● ● ● ● ●" style="letter-spacing:6px;text-align:center;direction:ltr">
+      <button type="button" id="otpBtn" onclick="verifyOtp()">تأكيد الرمز</button>
+      <div style="margin-top:10px;font-size:.85rem"><a id="otpResend" onclick="resendOtp()" style="color:var(--brand);cursor:pointer">إعادة إرسال الرمز</a>
+        · <a onclick="otpCancel()" style="color:var(--muted);cursor:pointer">رجوع</a></div>
+    </div>
     <div class="gate-err" id="gateErr"></div>
   </form>
 </div>
@@ -191,6 +200,10 @@ function setRole(r){
   $("gatePass").placeholder = r==="parent" ? "كلمة مرور وليّ الأمر" : "كلمة مرور المدير";
   $("gateSub").textContent = r==="parent" ? "ادخل لمتابعة ابنك: اسم الطالب وكلمة مرور وليّ الأمر" : "أدخل كلمة مرور المدير";
   $("gateErr").textContent = "";
+  // إعادة ضبط خطوة الرمز إن كانت ظاهرة
+  if($("otpBox")) $("otpBox").style.display="none";
+  if($("credBox")) $("credBox").style.display="";
+  $("gateBtn").disabled=false;
 }
 window.setRole = setRole;
 
@@ -201,6 +214,11 @@ function start(){
   const ps = sessionStorage.getItem("marmar_parent");
   if(ps){ try{ const o=JSON.parse(ps); parentPass=o.pass; parentCtx=o.ctx; role="parent"; openDash(); }catch(e){} }
 }
+let otpName=null, otpPass=null;   // حاملان أثناء خطوة الرمز
+/* أجهزة موثوقة لكلّ وليّ أمر: { "<اسم الطالب بحروف صغيرة>": "<token>" } */
+function pdevGet(name){ try{ const m=JSON.parse(localStorage.getItem("marmar_pdev")||"{}"); return m[(name||"").toLowerCase().trim()]||null; }catch(e){ return null; } }
+function pdevSet(name, token){ try{ const m=JSON.parse(localStorage.getItem("marmar_pdev")||"{}"); m[(name||"").toLowerCase().trim()]=token; localStorage.setItem("marmar_pdev", JSON.stringify(m)); }catch(e){} }
+
 $("gateForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const p = $("gatePass").value.trim(); if(!p) return;
@@ -208,10 +226,16 @@ $("gateForm").addEventListener("submit", async (e) => {
   if(role==="parent"){
     const nm = $("gateName").value.trim();
     if(!nm){ $("gateErr").textContent="أدخل اسم الطالب"; $("gateBtn").disabled=false; return; }
-    const ctx = await tryParent(nm, p);
-    if(ctx){ parentPass=p; parentCtx=ctx; sessionStorage.setItem("marmar_parent", JSON.stringify({pass:p,ctx}));
-             $("gate").classList.add("off"); openDash(); }
-    else { $("gateErr").textContent="اسم الطالب أو كلمة مرور وليّ الأمر غير صحيحة"; $("gateBtn").disabled=false; $("gatePass").select(); }
+    try{
+      const {data,error} = await client.rpc("parent_begin",{p_name:nm,p_pass:p,p_device_token:pdevGet(nm)});
+      if(error || !data || !data.length){ $("gateErr").textContent="اسم الطالب أو كلمة مرور وليّ الأمر غير صحيحة"; $("gateBtn").disabled=false; $("gatePass").select(); return; }
+      const row=data[0];
+      if(row.status==="ok"){ parentPass=p; parentCtx=row; sessionStorage.setItem("marmar_parent", JSON.stringify({pass:p,ctx:row}));
+        $("gate").classList.add("off"); openDash(); return; }
+      // يلزم رمز تحقّق
+      otpName=nm; otpPass=p; $("gateErr").textContent="";
+      await sendOtp(row.email_masked);
+    }catch(ex){ $("gateErr").textContent="تعذّر الاتصال"; $("gateBtn").disabled=false; }
   } else {
     const ok = await tryPass(p);
     if(ok){ adminPass = p; sessionStorage.setItem("marmar_admin", p);
@@ -223,11 +247,40 @@ async function tryPass(p){
   try{ const {error} = await client.rpc("get_activity",{p_admin_pass:p}); return !error; }
   catch(e){ return false; }
 }
-async function tryParent(name, p){
-  try{ const {data,error} = await client.rpc("parent_login",{p_name:name,p_parent_pass:p});
-    if(error || !data || !data.length) return null; return data[0];
-  }catch(e){ return null; }
+async function sendOtp(masked){
+  $("credBox").style.display="none"; $("otpBox").style.display="";
+  $("otpMsg").textContent = masked ? ("أرسلنا رمز تحقّق إلى "+masked) : "جارٍ إرسال رمز التحقّق…";
+  $("gateErr").textContent=""; $("otpCode").value=""; setTimeout(()=>$("otpCode").focus(),100);
+  try{
+    const {data,error} = await client.functions.invoke("send-parent-otp",{body:{name:otpName,pass:otpPass}});
+    if(error || !data || !data.ok){
+      const er=(data&&data.err)||"";
+      $("otpMsg").textContent = er==="not_configured"
+        ? "التحقّق بالبريد غير مُفعّل بعد. تواصل مع إدارة الموقع."
+        : "تعذّر إرسال الرمز. حاول مرّة أخرى.";
+    } else if(data.email_masked){ $("otpMsg").textContent="أرسلنا رمز تحقّق إلى "+data.email_masked+" (صالحٌ ١٠ دقائق)."; }
+  }catch(ex){ $("otpMsg").textContent="تعذّر إرسال الرمز. حاول مرّة أخرى."; }
 }
+async function resendOtp(){ await sendOtp(null); }
+window.resendOtp = resendOtp;
+function otpCancel(){ $("otpBox").style.display="none"; $("credBox").style.display=""; $("gateBtn").disabled=false; $("gateErr").textContent=""; otpName=otpPass=null; }
+window.otpCancel = otpCancel;
+async function verifyOtp(){
+  const code=$("otpCode").value.trim();
+  if(!/^\d{6}$/.test(code)){ $("gateErr").textContent="أدخل الرمز المكوّن من ٦ أرقام"; return; }
+  $("otpBtn").disabled=true; $("gateErr").textContent="…";
+  try{
+    const {data,error} = await client.rpc("verify_parent_otp",{p_name:otpName,p_pass:otpPass,p_code:code});
+    if(error || !data || !data.length){ $("gateErr").textContent="الرمز غير صحيح أو منتهٍ"; $("otpBtn").disabled=false; $("otpCode").select(); return; }
+    const row=data[0];
+    pdevSet(otpName, row.device_token);
+    parentPass=otpPass; parentCtx={id:row.id,name:row.name,curriculum:row.curriculum,prev_marks:row.prev_marks,has_img:row.has_img};
+    sessionStorage.setItem("marmar_parent", JSON.stringify({pass:parentPass,ctx:parentCtx}));
+    $("gate").classList.add("off"); $("otpBox").style.display="none"; $("credBox").style.display=""; otpName=otpPass=null;
+    openDash();
+  }catch(ex){ $("gateErr").textContent="تعذّر الاتصال"; $("otpBtn").disabled=false; }
+}
+window.verifyOtp = verifyOtp;
 function logout(){ sessionStorage.removeItem("marmar_admin"); sessionStorage.removeItem("marmar_parent"); location.reload(); }
 function openDash(){
   $("dash").style.display="block";
@@ -522,29 +575,33 @@ window.loadPrevImg = loadPrevImg;
 function buildParentAccess(st){
   if(!st) return "";
   const has = st.has_parent;
+  const em = st.parent_email ? esc(st.parent_email) : "";
   return `<div class="panel"><h2>👪 دخول وليّ الأمر</h2>
     <p style="color:var(--muted);font-size:.9rem;margin:0 0 10px">
-      ${ has ? "لهذا الطالب كلمة مرور وليّ أمر مفعّلة. يدخل الوليّ من تبويب «وليّ الأمر» باسم الطالب وهذه الكلمة."
+      ${ has ? `كلمة مرور وليّ الأمر مفعّلة${ em?` · البريد: <span style="direction:ltr;unicode-bidi:plaintext">${em}</span>`:" · لا بريد مضبوط" }. يدخل الوليّ من تبويب «وليّ الأمر» باسم الطالب وكلمته.`
              : "لا توجد كلمة مرور وليّ أمر لهذا الطالب بعد." }
-      يمكنك ضبطها أو تغييرها هنا:</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <input id="ppw_${st.id}" type="text" placeholder="كلمة مرور وليّ الأمر الجديدة" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;direction:ltr;unicode-bidi:plaintext">
-      <button onclick="setParentPass(${st.id})" style="padding:9px 16px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer;font-family:inherit">حفظ</button>
+      يمكنك ضبط/تغيير الكلمة أو البريد هنا (اترك الحقل فارغاً لإبقائه كما هو):</p>
+    <div style="display:grid;gap:8px;max-width:460px">
+      <input id="ppw_${st.id}" type="text" placeholder="كلمة مرور وليّ الأمر الجديدة" style="padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;direction:ltr;unicode-bidi:plaintext">
+      <input id="pem_${st.id}" type="email" value="${em}" placeholder="بريد وليّ الأمر الإلكترونيّ" style="padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;direction:ltr;unicode-bidi:plaintext">
+      <button onclick="setParent(${st.id})" style="padding:9px 16px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;justify-self:start">حفظ</button>
     </div>
     <div id="ppwMsg_${st.id}" style="font-size:.85rem;margin-top:8px;min-height:1.1em"></div></div>`;
 }
-async function setParentPass(id){
-  const v=$("ppw_"+id).value.trim(); const msg=$("ppwMsg_"+id);
-  if(v.length<4){ msg.style.color="var(--bad)"; msg.textContent="الكلمة قصيرة (٤ أحرف على الأقلّ)"; return; }
+async function setParent(id){
+  const pw=$("ppw_"+id).value.trim(), em=$("pem_"+id).value.trim(); const msg=$("ppwMsg_"+id);
+  if(pw && pw.length<4){ msg.style.color="var(--bad)"; msg.textContent="الكلمة قصيرة (٤ أحرف على الأقلّ)"; return; }
+  if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ msg.style.color="var(--bad)"; msg.textContent="البريد غير صحيح"; return; }
+  if(!pw && !em){ msg.style.color="var(--bad)"; msg.textContent="غيّر الكلمة أو البريد"; return; }
   msg.style.color="var(--muted)"; msg.textContent="…جارٍ الحفظ";
   try{
-    const {error}=await client.rpc("set_parent_pass",{p_admin_pass:adminPass,p_id:id,p_pass:v});
+    const {error}=await client.rpc("set_parent",{p_admin_pass:adminPass,p_id:id,p_pass:pw,p_email:em});
     if(error){ msg.style.color="var(--bad)"; msg.textContent="تعذّر الحفظ."; return; }
-    const st=STUDENTS.find(s=>s.id===id); if(st) st.has_parent=true;
-    msg.style.color="#16a34a"; msg.textContent="✓ حُفظت كلمة مرور وليّ الأمر."; $("ppw_"+id).value="";
+    const st=STUDENTS.find(s=>s.id===id); if(st){ if(pw) st.has_parent=true; if(em) st.parent_email=em.toLowerCase(); }
+    msg.style.color="#16a34a"; msg.textContent="✓ حُفظت بيانات وليّ الأمر."; $("ppw_"+id).value="";
   }catch(e){ msg.style.color="var(--bad)"; msg.textContent="تعذّر الاتصال."; }
 }
-window.setParentPass = setParentPass;
+window.setParent = setParent;
 function pickAll(){ current="all"; $("pick").value="all"; renderRoster(); }
 
 function buildExamTable(exams){
