@@ -14045,13 +14045,16 @@ const CURRICULA = [
         { key:"it",       name:"تكنولوجيا المعلومات",       max:200, targets:[] }
       ] } },
   { id:"i3",           name:"الثالث الإعداديّ (التاسع)",      short:"التاسع",                icon:"📗", subjects: SUBJ_I3,
-    prevExam:{ title:"علامات الصف الثامن", hint:"أدخل علاماتك الفعلية من نهاية العام الماضي.",
+    prevExam:{ title:"علامات الصف الثامن", hint:"أدخل علاماتك الفعلية من نهاية العام الماضي (نفس مواد الشهادة).",
       subjects:[
-        { key:"math", name:"الرياضيات",            max:100, targets:["g9-alg","g9-geo"] },
-        { key:"sci",  name:"العلوم (أحياء)",       max:100, targets:["g9-sci"] },
-        { key:"phch", name:"الفيزياء والكيمياء",   max:100, targets:["g9-phch"] },
-        { key:"arab", name:"اللغة العربية",        max:100, targets:["g9-ar"] },
-        { key:"eng",  name:"اللغة الإنكليزية",     max:100, targets:["g9-eng"] }
+        { key:"math",     name:"الرياضيات",                    max:600, targets:["g9-alg","g9-geo"] },
+        { key:"sci",      name:"العلوم العامّة",               max:400, targets:["g9-sci","g9-phch"] },
+        { key:"arab",     name:"اللغة العربية",                max:600, targets:["g9-ar"] },
+        { key:"eng",      name:"اللغة الإنكليزية",             max:400, targets:["g9-eng"] },
+        { key:"french",   name:"اللغة الأجنبية",               max:400, targets:[] },
+        { key:"social",   name:"الدراسات الاجتماعية",          max:600, targets:[] },
+        { key:"religion", name:"التربية الدينية",              max:200, targets:[] },
+        { key:"ict",      name:"تكنولوجيا المعلومات والاتصالات", max:200, targets:[] }
       ] } }
 ];
 let MANHAJ = SUBJ_THANAWI2;   // المنهاج النشط (يُضبط حسب الطالب عند الدخول)

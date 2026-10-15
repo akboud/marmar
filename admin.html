@@ -183,7 +183,9 @@ const PREV_META = {
     {key:"french",name:"اللغة الأجنبية (الثانية)",max:300},{key:"philo",name:"الفلسفة والعلوم الإنسانية",max:200},
     {key:"religion",name:"التربية الدينية",max:200},{key:"it",name:"تكنولوجيا المعلومات",max:200} ] },
   "i3": { title:"علامات الصف الثامن", subjects:[
-    {key:"math",name:"الرياضيات",max:100},{key:"sci",name:"العلوم (أحياء)",max:100},{key:"phch",name:"الفيزياء والكيمياء",max:100},{key:"arab",name:"اللغة العربية",max:100},{key:"eng",name:"اللغة الإنكليزية",max:100} ] }
+    {key:"math",name:"الرياضيات",max:600},{key:"sci",name:"العلوم العامّة",max:400},{key:"arab",name:"اللغة العربية",max:600},
+    {key:"eng",name:"اللغة الإنكليزية",max:400},{key:"french",name:"اللغة الأجنبية",max:400},{key:"social",name:"الدراسات الاجتماعية",max:600},
+    {key:"religion",name:"التربية الدينية",max:200},{key:"ict",name:"تكنولوجيا المعلومات والاتصالات",max:200} ] }
 };
 function prevMetaFor(cid){ return PREV_META[cid] || PREV_META["thanawi2-sci"]; }
 function metaFor(cid){ return CURRICULA_META[cid] || CURRICULA_META["thanawi2-sci"]; }
