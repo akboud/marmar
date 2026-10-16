@@ -19054,10 +19054,12 @@ function isolateMath(s){
   });
 }
 
+// عزل كلّ كلمة عربيّة داخل الصيغ (code) بعلامتَي LRI/PDI حتى لا ينقلب ترتيبها في السياق اللاتيني
+const wrapAr = t => t.replace(/[؀-ۿ][؀-ۿ\s]*/g, m => '⁦' + m + '⁩');
 // **عريض** و *مائل* و `كود` + عزل المعادلات
 const fmt = s => isolateMath(esc(s))
   .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  .replace(/`(.+?)`/g, '<code>$1</code>')
+  .replace(/`(.+?)`/g, (_, m) => '<code>' + wrapAr(m) + '</code>')
   .replace(/\*(.+?)\*/g, '<em>$1</em>')
   .replace(//g, '<span class="mth">')
   .replace(//g, '</span>');
