@@ -19934,7 +19934,7 @@ function renderQuiz(L){
          ${q.choices.map((c,j)=>
            `<label class="ch" onclick="pick(${i},${j})" id="c${i}_${j}">${fmt(c)}</label>`
          ).join("")}
-         ${ q.hint ? `<button class="aibtn" type="button" data-open="💡 تلميح" data-close="إخفاء التلميح" onclick="aiToggle(this)">💡 تلميح</button><div class="aibox">${fmt(q.hint)}</div>` : "" }
+         ${ (q.hint && L.hints !== false) ? `<button class="aibtn" type="button" data-open="💡 تلميح" data-close="إخفاء التلميح" onclick="aiToggle(this)">💡 تلميح</button><div class="aibox">${fmt(q.hint)}</div>` : "" }
          <div class="why" id="w${i}"><strong>التعليل:</strong> ${fmt(q.why)}</div>
        </div>`
     ).join("") +
@@ -19971,15 +19971,18 @@ function grade(){
   });
   const pct = Math.round(right/L.quiz.length*100);
   const isEx = !!L.isExam;
-  if(isEx) track('exam', L, {pct, right, total:L.quiz.length, wrong, subject:L.subject, count:L.quiz.length, lessons:L.lessons});
+  if(isEx) track('exam', L, {pct, right, total:L.quiz.length, wrong, subject:L.subject, count:L.quiz.length, lessons:L.lessons, hints:!!L.hints});
   else     track('quiz', L, {pct, right, total:L.quiz.length, wrong, subject:__subjOf[L.id]});
   const pass = pct>=60;
   const s = $("score");
   s.className = "score show " + (pass?"pass":"fail");
   const what = isEx ? "المادة" : "الدرس";
+  const hintTag = isEx
+    ? `<div style="margin-top:12px"><span style="display:inline-block;font-size:.84rem;font-weight:700;padding:4px 14px;border-radius:999px;${L.hints?'background:#fef3c7;color:#92400e':'background:#dcfce7;color:#15803d'}">${L.hints?'💡 أُجري الاختبار بوجود التلميحات':'✓ أُجري الاختبار دون تلميحات'}</span></div>`
+    : "";
   s.innerHTML = `<b>${right} / ${L.quiz.length}</b>
     <div>${pct}٪ — ${pass ? (pct>=90?`ممتاز! أتقنتِ ${what} 🎉`:"جيّد، راجعي الأخطاء واستمرّي 👏")
-                          : (isEx?"راجعي الدروس ثمّ أعيدي الاختبار 💪":"راجعي الملخّص والبطاقات ثمّ أعيدي الاختبار 💪")}</div>`;
+                          : (isEx?"راجعي الدروس ثمّ أعيدي الاختبار 💪":"راجعي الملخّص والبطاقات ثمّ أعيدي الاختبار 💪")}</div>${hintTag}`;
   const key = isEx ? "exambest_"+L.subject : "best_"+L.id;
   if(!store.get(key) || pct > store.get(key)) store.set(key, pct);
   s.scrollIntoView({behavior:"smooth", block:"center"});
@@ -20003,10 +20006,16 @@ function examSetup(sid){
         <input type="checkbox" class="exLes" value="${x.l.id}" checked>
         <span>${esc(x.l.name)} <small style="color:var(--muted)">(${x.l.quiz.length})</small></span></label>`).join("")
     + `</div>
-    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:18px">
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
       <span style="font-weight:600">عدد الأسئلة:</span>
       <label style="cursor:pointer"><input type="radio" name="exCount" value="10" checked onchange="__examCount=10"> ١٠</label>
       <label style="cursor:pointer"><input type="radio" name="exCount" value="15" onchange="__examCount=15"> ١٥</label>
+    </div>
+    <div style="margin-bottom:18px;padding:12px 14px;background:#f7f8fb;border:1px solid var(--line);border-radius:10px">
+      <label style="cursor:pointer;display:flex;gap:9px;align-items:center;font-weight:600">
+        <input type="checkbox" id="exHints"> إتاحة التلميحات أثناء الاختبار 💡
+      </label>
+      <small style="color:var(--muted);display:block;margin-top:6px">التلميحات قد تكشف الإجابة؛ للتقييم الحقيقيّ اتركيها دون تفعيل. وستظهر إشارةٌ بجانب علامتك تبيّن إن كان الاختبار قد جرى بتلميحاتٍ أو بدونها.</small>
     </div>
     <div style="text-align:center"><button class="btn primary" onclick="startExam('${S.id}')">ابدئي الاختبار</button></div>
     <div class="gate-err" id="exErr" style="text-align:center"></div>
@@ -20026,7 +20035,9 @@ function startExam(sid){
   chosen.forEach(l=>{ (l.quiz||[]).forEach(q=>pool.push(q)); });
   if(!pool.length){ $("exErr").textContent="لا توجد أسئلة في الدروس المختارة"; return; }
   const picked = shuffle(pool).slice(0, Math.min(__examCount, pool.length));
-  const L = {id:"exam-"+S.id, name:"اختبار فصليّ — "+S.name, subject:S.name, isExam:true, lessons:ids, quiz:picked};
+  const eh = document.getElementById("exHints");
+  const useHints = !!(eh && eh.checked);
+  const L = {id:"exam-"+S.id, name:"اختبار فصليّ — "+S.name, subject:S.name, isExam:true, hints:useHints, lessons:ids, quiz:picked};
   $("crumbs").innerHTML = `<a onclick="go(null)">المواد</a> ‹ <a onclick="go('${S.id}')">${esc(S.name)}</a> ‹ <a onclick="examSetup('${S.id}')">اختبار فصليّ</a> ‹ <span>الأسئلة</span>`;
   $("view").innerHTML = `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <h3 style="margin:0;color:var(--brand)">📝 اختبار فصليّ — ${esc(S.name)} <small style="color:var(--muted);font-weight:500">(${picked.length} سؤالاً)</small></h3>

@@ -648,15 +648,20 @@ async function setParent(id){
 window.setParent = setParent;
 function pickAll(){ current="all"; $("pick").value="all"; renderRoster(); }
 
+function hintBadge(hv){
+  if(hv===true)  return '<span style="font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:999px;background:#fef3c7;color:#92400e;white-space:nowrap">💡 بتلميحات</span>';
+  if(hv===false) return '<span style="font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:999px;background:#dcfce7;color:#15803d;white-space:nowrap">✓ بلا تلميحات</span>';
+  return '<span style="color:#94a3b8">—</span>';   // اختبارات قديمة قبل إضافة الميزة
+}
 function buildExamTable(exams){
   if(!exams.length) return "";
   const list=exams.slice().sort((a,b)=>b.when-a.when);
   let h='<div class="panel"><h2>📝 الاختبارات الفصليّة</h2><div class="scroll"><table><thead><tr>'
-   +'<th>المادة</th><th>العلامة</th><th>عدد الأسئلة</th><th>الدروس المشمولة</th><th>الأسئلة المُخطئة</th><th>التاريخ</th></tr></thead><tbody>';
+   +'<th>المادة</th><th>العلامة</th><th>التلميحات</th><th>عدد الأسئلة</th><th>الدروس المشمولة</th><th>الأسئلة المُخطئة</th><th>التاريخ</th></tr></thead><tbody>';
   list.forEach(r=>{
     const d=r.detail||{};
     const wt=(d.wrong&&d.wrong.length)?`<span class="wrongs">س${d.wrong.join("، س")}</span>`:"—";
-    h+=`<tr><td>${esc(r.subject||d.subject||"—")}</td><td>${pill(d.pct)}</td>
+    h+=`<tr><td>${esc(r.subject||d.subject||"—")}</td><td>${pill(d.pct)}</td><td>${hintBadge(d.hints)}</td>
       <td><span class="num">${d.total||d.count||"—"}</span></td>
       <td><span class="num">${(d.lessons&&d.lessons.length)||"—"}</span></td>
       <td>${wt}</td><td>${relTime(r.when)}</td></tr>`;
@@ -694,6 +699,7 @@ function buildLog(rows){
   rows.slice(0,40).forEach(r=>{
     const k=KIND[r.kind]||{i:"•",t:r.kind};
     let ex=""; if(r.kind==="quiz"&&typeof r.detail.pct==="number") ex=` — ${pill(r.detail.pct)}`;
+    if(r.kind==="exam"&&typeof r.detail.pct==="number") ex=` — ${pill(r.detail.pct)} ${hintBadge(r.detail.hints)}`;
     if(r.kind==="done") ex=r.detail.done?" ✓":" (أُلغي)";
     h+=`<li><span class="ic">${k.i}</span><span class="txt">${k.t}${r.lesson_name?`: <b>${esc(r.lesson_name)}</b>`:""}
       ${r.subject?`<span style="color:var(--muted);font-size:.82rem"> · ${esc(r.subject)}</span>`:""}${ex}</span>
