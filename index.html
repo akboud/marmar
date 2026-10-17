@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-16 · لا تحتاج إنترنت -->
+<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-17 · لا تحتاج إنترنت -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>منصة مرمر — الصف الثاني الثانوي / العلمي</title>
@@ -19925,16 +19925,24 @@ function drawCard(L){
 
 /* ---------- الاختبار ---------- */
 let answers = {};
-function renderQuiz(L){
-  answers = {};
-  $("panel").innerHTML =
+function renderQuiz(L, keep){
+  if(!keep) answers = {};
+  const isEx = !!L.isExam;
+  // شريط اختيار التلميحات لاختبارات الدروس (الاختبار الفصليّ يختارها في شاشة الإعداد)
+  const hintBar = !isEx ? `<div style="margin-bottom:16px;padding:11px 14px;background:#f7f8fb;border:1px solid var(--line);border-radius:10px">
+      <label style="cursor:pointer;display:flex;gap:9px;align-items:center;font-weight:600">
+        <input type="checkbox" id="qHints" ${L.hints?"checked":""} onchange="toggleQuizHints(this.checked)"> إظهار التلميحات أثناء الحلّ 💡
+      </label>
+      <small style="color:var(--muted);display:block;margin-top:6px">قد تكشف التلميحات الإجابة؛ للتقييم الحقيقيّ اتركيها دون تفعيل. وستُسجَّل إشارةٌ تبيّن إن كان الاختبار بتلميحاتٍ أو بدونها.</small>
+    </div>` : "";
+  $("panel").innerHTML = hintBar +
     L.quiz.map((q,i)=>
       `<div class="q" id="q${i}">
          <div class="qt">${i+1}. ${fmt(q.q)}</div>
          ${q.choices.map((c,j)=>
            `<label class="ch" onclick="pick(${i},${j})" id="c${i}_${j}">${fmt(c)}</label>`
          ).join("")}
-         ${ (q.hint && L.hints !== false) ? `<button class="aibtn" type="button" data-open="💡 تلميح" data-close="إخفاء التلميح" onclick="aiToggle(this)">💡 تلميح</button><div class="aibox">${fmt(q.hint)}</div>` : "" }
+         ${ (q.hint && L.hints === true) ? `<button class="aibtn" type="button" data-open="💡 تلميح" data-close="إخفاء التلميح" onclick="aiToggle(this)">💡 تلميح</button><div class="aibox">${fmt(q.hint)}</div>` : "" }
          <div class="why" id="w${i}"><strong>التعليل:</strong> ${fmt(q.why)}</div>
        </div>`
     ).join("") +
@@ -19944,8 +19952,12 @@ function renderQuiz(L){
      </div>
      <div class="score" id="score"></div>`;
   window.CURQ = L;
+  if(keep) Object.keys(answers).forEach(i=>{ const el=$(`c${i}_${answers[i]}`); if(el) el.classList.add("sel"); });
 }
 window.renderQuiz = renderQuiz;
+// تبديل التلميحات أثناء اختبار الدرس دون فقدان الإجابات المختارة
+function toggleQuizHints(on){ if(window.CURQ){ window.CURQ.hints = on; renderQuiz(window.CURQ, true); } }
+window.toggleQuizHints = toggleQuizHints;
 
 function pick(i,j){
   const L = window.CURQ;
@@ -19972,14 +19984,12 @@ function grade(){
   const pct = Math.round(right/L.quiz.length*100);
   const isEx = !!L.isExam;
   if(isEx) track('exam', L, {pct, right, total:L.quiz.length, wrong, subject:L.subject, count:L.quiz.length, lessons:L.lessons, hints:!!L.hints});
-  else     track('quiz', L, {pct, right, total:L.quiz.length, wrong, subject:__subjOf[L.id]});
+  else     track('quiz', L, {pct, right, total:L.quiz.length, wrong, subject:__subjOf[L.id], hints:!!L.hints});
   const pass = pct>=60;
   const s = $("score");
   s.className = "score show " + (pass?"pass":"fail");
   const what = isEx ? "المادة" : "الدرس";
-  const hintTag = isEx
-    ? `<div style="margin-top:12px"><span style="display:inline-block;font-size:.84rem;font-weight:700;padding:4px 14px;border-radius:999px;${L.hints?'background:#fef3c7;color:#92400e':'background:#dcfce7;color:#15803d'}">${L.hints?'💡 أُجري الاختبار بوجود التلميحات':'✓ أُجري الاختبار دون تلميحات'}</span></div>`
-    : "";
+  const hintTag = `<div style="margin-top:12px"><span style="display:inline-block;font-size:.84rem;font-weight:700;padding:4px 14px;border-radius:999px;${L.hints?'background:#fef3c7;color:#92400e':'background:#dcfce7;color:#15803d'}">${L.hints?'💡 أُجري بوجود التلميحات':'✓ أُجري دون تلميحات'}</span></div>`;
   s.innerHTML = `<b>${right} / ${L.quiz.length}</b>
     <div>${pct}٪ — ${pass ? (pct>=90?`ممتاز! أتقنتِ ${what} 🎉`:"جيّد، راجعي الأخطاء واستمرّي 👏")
                           : (isEx?"راجعي الدروس ثمّ أعيدي الاختبار 💪":"راجعي الملخّص والبطاقات ثمّ أعيدي الاختبار 💪")}</div>${hintTag}`;

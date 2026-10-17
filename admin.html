@@ -673,19 +673,19 @@ function buildQuizTable(quizzes, rows){
   if(!quizzes.length) return '<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="empty">لم يُجرِ أيّ اختبار بعد.</div></div>';
   const byLesson={};
   quizzes.forEach(r=>{
-    const id=r.lesson_id; if(!byLesson[id]) byLesson[id]={name:r.lesson_name,subj:r.subject||r.detail.subject,attempts:0,best:0,last:null,lastTs:null,wrong:{}};
+    const id=r.lesson_id; if(!byLesson[id]) byLesson[id]={name:r.lesson_name,subj:r.subject||r.detail.subject,attempts:0,best:0,last:null,lastTs:null,lastHints:undefined,wrong:{}};
     const L=byLesson[id]; L.attempts++;
     const pct=r.detail.pct||0; if(pct>L.best) L.best=pct;
-    if(!L.lastTs||r.when>L.lastTs){L.lastTs=r.when;L.last=pct;}
+    if(!L.lastTs||r.when>L.lastTs){L.lastTs=r.when;L.last=pct;L.lastHints=r.detail.hints;}
     (r.detail.wrong||[]).forEach(q=>L.wrong[q]=(L.wrong[q]||0)+1);
   });
   const list=Object.values(byLesson).sort((a,b)=>b.lastTs-a.lastTs);
   let h='<div class="panel"><h2>✍ نتائج الاختبارات</h2><div class="scroll"><table><thead><tr>'
-   +'<th>المادة</th><th>الدرس</th><th>محاولات</th><th>أفضل</th><th>آخر علامة</th><th>آخر محاولة</th><th>أسئلة متكرّرة الخطأ</th></tr></thead><tbody>';
+   +'<th>المادة</th><th>الدرس</th><th>محاولات</th><th>أفضل</th><th>آخر علامة</th><th>تلميحات آخر محاولة</th><th>آخر محاولة</th><th>أسئلة متكرّرة الخطأ</th></tr></thead><tbody>';
   list.forEach(L=>{
     const wt=Object.entries(L.wrong).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([q,c])=>`س${q}${c>1?`(×${c})`:""}`).join("، ");
     h+=`<tr><td>${esc(L.subj||"—")}</td><td class="name">${esc(L.name||"")}</td>
-      <td><span class="num">${L.attempts}</span></td><td>${pill(L.best)}</td><td>${pill(L.last)}</td>
+      <td><span class="num">${L.attempts}</span></td><td>${pill(L.best)}</td><td>${pill(L.last)}</td><td>${hintBadge(L.lastHints)}</td>
       <td>${relTime(L.lastTs)}</td><td class="wrongs">${wt||"—"}</td></tr>`;
   });
   h+='</tbody></table></div></div>';
@@ -698,7 +698,7 @@ function buildLog(rows){
   let h='<div class="panel"><h2>🕑 سجلّ النشاط الأخير</h2><ul class="log">';
   rows.slice(0,40).forEach(r=>{
     const k=KIND[r.kind]||{i:"•",t:r.kind};
-    let ex=""; if(r.kind==="quiz"&&typeof r.detail.pct==="number") ex=` — ${pill(r.detail.pct)}`;
+    let ex=""; if(r.kind==="quiz"&&typeof r.detail.pct==="number") ex=` — ${pill(r.detail.pct)} ${hintBadge(r.detail.hints)}`;
     if(r.kind==="exam"&&typeof r.detail.pct==="number") ex=` — ${pill(r.detail.pct)} ${hintBadge(r.detail.hints)}`;
     if(r.kind==="done") ex=r.detail.done?" ✓":" (أُلغي)";
     h+=`<li><span class="ic">${k.i}</span><span class="txt">${k.t}${r.lesson_name?`: <b>${esc(r.lesson_name)}</b>`:""}
