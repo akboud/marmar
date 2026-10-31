@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-25 · لا تحتاج إنترنت -->
+<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-31 · لا تحتاج إنترنت -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>منصة مرمر — الصف الثاني الثانوي / العلمي</title>
@@ -19880,6 +19880,266 @@ const PHILO = {
 if(typeof SUBJ_THANAWI2 !== "undefined" && !SUBJ_THANAWI2.some(s=>s.id==="philo")) SUBJ_THANAWI2.push(PHILO);
 (function(){ try{ const c=CURRICULA.find(x=>x.id==="thanawi2-sci"); const p=c&&c.prevExam&&c.prevExam.subjects.find(s=>s.key==="philo"); if(p) p.targets=["philo"]; }catch(e){} })();
 /* ===== PHILO END ===== */
+
+/* ===== FRENCH START =====
+   مادة اللغة الفرنسية — الثاني الثانوي (الفرع العلميّ)
+   تُلحق بـ SUBJ_THANAWI2 وتُربط بعلامات الجلاء (prevExam.french).
+   المصدر: كتاب الطالب «اللغة الفرنسية - الصف الثاني الثانوي» (٦ وحدات). */
+const FRENCH = {
+  id: "french", name: "اللغة الفرنسية", icon: "🇫🇷", color: "#1d4ed8",
+  book: "اللغة الفرنسية - كتاب الطالب - الصف الثاني الثانوي.pdf",
+  units: [
+  {
+    id: "fr-u1", name: "Unité 1 — Quartier solidaire (الأزمنة الماضية + الماضي المستقبل)",
+    lessons: [
+    {
+      id: "fr-u1-l1", name: "La concordance des temps & le futur antérieur", pages: "6–25",
+      summary: [
+        { h: "١. أزمنة الماضي الثلاثة (concordance des temps)",
+          body: "لربط أحداث الماضي نستعمل ثلاثة أزمنة:\n• **l'imparfait**: وصفٌ أو عادةٌ أو حدثٌ مستمرّ في الماضي (il **jouait**).\n• **le passé composé**: حدثٌ منتهٍ محدّد (il **a joué**).\n• **le plus-que-parfait**: حدثٌ **سابقٌ** على حدثٍ ماضٍ آخر (il **avait joué**).\n\nيُبنى **plus-que-parfait** من `avoir/être` في **l'imparfait** + **participe passé**.",
+          more: "القاعدة الذهبيّة: الحدث الأسبق في الماضي ← plus-que-parfait، والحدث التالي ← passé composé أو imparfait. مثال: «Quand je suis arrivé, il **était** déjà **parti**»." },
+        { h: "٢. le futur antérieur",
+          body: "يعبّر **le futur antérieur** عن حدثٍ مستقبليٍّ **سابقٍ** على حدثٍ مستقبليٍّ آخر.\n\nيُبنى من المساعد `avoir` أو `être` في **le futur simple** + **participe passé**:\n«Quand j'**aurai fini** mon travail, je sortirai.»",
+          more: "التقابل: futur antérieur (العمل الذي يُنجَز أولاً) ثمّ futur simple (العمل التالي). المساعد يكون في المستقبل البسيط: j'aurai, tu auras, il aura... / je serai, tu seras..." },
+        { h: "٣. Lexique — la solidarité et l'action humanitaire",
+          body: "مفردات الوحدة (التضامن والعمل الإنسانيّ):\n**un quartier** حيّ، **solidaire** متضامن، **une association** جمعيّة، **un·e bénévole** متطوّع، **une action humanitaire** عملٌ إنسانيّ، **un but** هدف، **aider / soutenir** يساعد/يدعم، **les personnes isolées** الأشخاص المعزولون.",
+          more: "تعبيرٌ مفتاحيّ: «Nous avons pour but de + infinitif» (هدفنا أن...). ولاحظ: but تُلفظ غالباً بلا نطق الـ t." },
+        { h: "٤. Communication — citer une action et son but",
+          body: "لتقديم عملٍ وهدفه: «On organise un événement **pour** aider les malades.» و**pour + infinitif** تعبّر عن الهدف (le but). ونقول: «Le but de cette action **est de** soutenir les isolés.»",
+          more: "أدوات الهدف: `pour + infinitif`، `afin de + infinitif`، `dans le but de + infinitif` — كلّها تفيد الغاية." }
+      ],
+      cards: [
+        { q: "متى نستعمل l'imparfait؟", a: "للوصف أو العادة أو الحدث المستمرّ في الماضي: «Il **jouait** tous les jours.»" },
+        { q: "كيف يُبنى le plus-que-parfait؟", a: "من `avoir/être` في **l'imparfait** + **participe passé**: «il **avait fini**»." },
+        { q: "ما وظيفة le plus-que-parfait؟", a: "التعبير عن حدثٍ **سابقٍ** على حدثٍ ماضٍ آخر: «Quand je suis arrivé, il était déjà **parti**.»" },
+        { q: "كيف يُبنى le futur antérieur؟", a: "من `avoir/être` في **le futur simple** + **participe passé**: «j'**aurai fini**»." },
+        { q: "ما وظيفة le futur antérieur؟", a: "حدثٌ مستقبليٌّ **ينتهي قبل** حدثٍ مستقبليٍّ آخر: «Quand j'aurai fini, je sortirai.»" },
+        { q: "كيف نعبّر عن الهدف (le but) بالفرنسيّة؟", a: "بـ**pour / afin de / dans le but de + infinitif**: «pour aider les malades»." },
+        { q: "ترجم: جمعيّة، متطوّع، هدف.", a: "**une association**، **un·e bénévole**، **un but**." }
+      ],
+      quiz: [
+        { q: "Choisissez : « Quand je suis arrivé, le train ___ déjà parti. »", choices: ["est", "était", "a", "sera"], correct: 1, why: "حدثٌ سابقٌ على ماضٍ ← plus-que-parfait؛ والفعل partir يأخذ être، فالمساعد être في l'imparfait ← «était déjà parti».", hint: "partir مع être، والمساعد في l'imparfait ← plus-que-parfait." },
+        { q: "Choisissez : « Hier, il ___ beau, alors nous sommes sortis. »", choices: ["faisait", "a fait", "avait fait", "fera"], correct: 0, why: "وصفُ حالةٍ/خلفيّة في الماضي ← l'imparfait: «il faisait beau».", hint: "وصفٌ للجوّ (خلفيّة) ← imparfait." },
+        { q: "Choisissez : « Quand j'___ fini mes devoirs, je regarderai un film. »", choices: ["ai", "avais", "aurai", "aurais"], correct: 2, why: "حدثٌ مستقبليٌّ ينتهي قبل آخر ← futur antérieur: «j'aurai fini».", hint: "المساعد في المستقبل البسيط: j'___ fini." },
+        { q: "Le plus-que-parfait se forme avec l'auxiliaire à :", choices: ["l'imparfait + participe passé", "au futur + participe passé", "au présent + infinitif", "au conditionnel + infinitif"], correct: 0, why: "plus-que-parfait = avoir/être à l'imparfait + participe passé.", hint: "المساعد يكون في الـ imparfait." },
+        { q: "Choisissez : « Elle ___ (manger) quand le téléphone a sonné. »", choices: ["mangeait", "a mangé", "avait mangé", "mangera"], correct: 0, why: "حدثٌ مستمرٌّ قطعه حدثٌ آخر ← l'imparfait: «elle mangeait».", hint: "فعلٌ كان جارياً فقطعه آخر ← imparfait." },
+        { q: "« Nous avons pour but ___ aider les personnes isolées. »", choices: ["de", "à", "pour", "que"], correct: 0, why: "«avoir pour but **de** + infinitif».", hint: "avoir pour but ___ + مصدر." },
+        { q: "Le futur antérieur exprime une action future :", choices: ["postérieure à une autre", "antérieure à une autre", "habituelle", "en cours maintenant"], correct: 1, why: "يعبّر عن حدثٍ مستقبليٍّ سابقٍ (antérieur) على آخر.", hint: "«antérieur» تعني سابق." },
+        { q: "Choisissez l'auxiliaire : « Dès que tu ___ arrivé, appelle-moi. » (futur antérieur)", choices: ["es", "seras", "étais", "serais"], correct: 1, why: "arriver يأخذ être، وفي futur antérieur يكون être في المستقبل ← «seras arrivé».", hint: "arriver مع être، والمساعد في المستقبل." }
+      ]
+    }
+    ]
+  },
+  {
+    id: "fr-u2", name: "Unité 2 — On est content (الشرط والتمنّي)",
+    lessons: [
+    {
+      id: "fr-u2-l1", name: "Le conditionnel & l'hypothèse avec « si »", pages: "26–45",
+      summary: [
+        { h: "١. le conditionnel présent",
+          body: "يُبنى **le conditionnel présent** من **جذر المستقبل** + **لواحق l'imparfait** (`-ais, -ais, -ait, -ions, -iez, -aient`):\nje parler**ais**, tu parler**ais**, il parler**ait**...\n\nيُستعمل للتعبير عن **طلبٍ مهذّب، أمنيةٍ، أو نصيحة**: «Je **voudrais** un café», «Tu **devrais** te reposer».",
+          more: "تذكّر: conditionnel = مستقبل في الجذر + imparfait في اللاحقة. أفعالٌ شائعة: je voudrais, je pourrais, il faudrait, tu devrais." },
+        { h: "٢. le conditionnel passé",
+          body: "يُبنى **le conditionnel passé** من `avoir/être` في **le conditionnel présent** + **participe passé**:\n«J'**aurais aimé** venir», «Tu **aurais dû** étudier».\n\nيعبّر عن **الندم (le regret)** أو **اللوم (le reproche)** على أمرٍ لم يحدث.",
+          more: "الفرق: conditionnel présent للحاضر/المستقبل، و conditionnel passé للماضي (ندمٌ على ما فات): «J'aurais dû...» كان يجب أن..." },
+        { h: "٣. l'hypothèse avec « si »",
+          body: "ثلاث بنىً للفرض بـ **si**:\n• **Si + présent → futur** (فرضٌ ممكن): «Si tu **travailles**, tu **réussiras**.»\n• **Si + imparfait → conditionnel présent** (فرضٌ محتمَل/غير واقعيّ في الحاضر): «Si j'**avais** le temps, je **viendrais**.»\n• **Si + plus-que-parfait → conditionnel passé** (فرضٌ مستحيلٌ في الماضي): «Si tu **avais révisé**, tu **aurais réussi**.»",
+          more: "لا يأتي بعد `si` الشرطيّة مستقبلٌ ولا شرطٌ أبداً: نقول «si j'avais» لا «si j'aurais». هذا أكثر خطأٍ شائع." },
+        { h: "٤. Lexique & communication — émotions, cause et conséquence",
+          body: "مفردات المشاعر: **content·e** مسرور، **triste** حزين، **la joie** الفرح، **le regret** الندم. وللسبب والنتيجة: **parce que / car** (سبب)، **donc / alors / c'est pourquoi** (نتيجة): «Il pleut, **donc** je reste à la maison.»",
+          more: "التمييز: `parce que` يجيب عن «pourquoi؟» (سبب)، و`donc` يربط بالنتيجة. والنتيجة تأتي بعد السبب منطقيّاً." }
+      ],
+      cards: [
+        { q: "كيف يُبنى le conditionnel présent؟", a: "**جذر المستقبل + لواحق l'imparfait** (`-ais...-aient`): je parlerais, il viendrait." },
+        { q: "ما استعمالات le conditionnel présent؟", a: "**الطلب المهذّب، الأمنية، النصيحة**: «Je voudrais...», «Tu devrais...»." },
+        { q: "كيف يُبنى le conditionnel passé؟ وما وظيفته؟", a: "`avoir/être` في conditionnel présent + participe passé؛ ويعبّر عن **الندم أو اللوم**: «J'aurais dû étudier»." },
+        { q: "اذكر بنى الفرض الثلاث بـ si.", a: "**si + présent → futur**؛ **si + imparfait → conditionnel présent**؛ **si + plus-que-parfait → conditionnel passé**." },
+        { q: "ما الخطأ الشائع بعد si الشرطيّة؟", a: "وضع مستقبلٍ أو شرطٍ بعدها؛ الصواب «si j'**avais**» لا «si j'aurais»." },
+        { q: "ترجم: الندم، الفرح، مسرور.", a: "**le regret**، **la joie**، **content·e**." },
+        { q: "كيف نعبّر عن النتيجة بالفرنسيّة؟", a: "بـ**donc / alors / c'est pourquoi**: «Il pleut, donc je reste.»" }
+      ],
+      quiz: [
+        { q: "Choisissez : « Si j'avais de l'argent, j'___ une voiture. »", choices: ["achète", "achèterai", "achèterais", "ai acheté"], correct: 2, why: "si + imparfait → conditionnel présent: «j'achèterais».", hint: "si + imparfait ← الجواب بالـ conditionnel présent." },
+        { q: "Choisissez : « Si tu travailles bien, tu ___. »", choices: ["réussirais", "réussiras", "réussissais", "aurais réussi"], correct: 1, why: "si + présent → futur: «tu réussiras».", hint: "si + présent ← الجواب بالمستقبل." },
+        { q: "Choisissez : « Si vous aviez étudié, vous ___ l'examen. »", choices: ["réussirez", "réussiriez", "auriez réussi", "réussissez"], correct: 2, why: "si + plus-que-parfait → conditionnel passé: «vous auriez réussi».", hint: "si + plus-que-parfait ← الجواب بالـ conditionnel passé." },
+        { q: "« Je ___ un café, s'il vous plaît. » (demande polie)", choices: ["veux", "voudrais", "voudrai", "ai voulu"], correct: 1, why: "الطلب المهذّب ← conditionnel présent: «je voudrais».", hint: "طلبٌ مهذّب ← conditionnel présent." },
+        { q: "« Tu ___ te reposer, tu as l'air fatigué. » (conseil)", choices: ["devrais", "dois", "devras", "as dû"], correct: 0, why: "النصيحة ← conditionnel présent: «tu devrais».", hint: "نصيحة ← devoir بالـ conditionnel présent." },
+        { q: "Le conditionnel présent se forme avec :", choices: ["radical du futur + terminaisons de l'imparfait", "radical du présent + ait", "être + participe", "si + imparfait"], correct: 0, why: "القاعدة: جذر المستقبل + لواحق imparfait.", hint: "مستقبلٌ في الجذر، imparfait في اللاحقة." },
+        { q: "« J'___ venir, mais j'étais malade. » (regret)", choices: ["aurais aimé", "aimerais", "aime", "aimais"], correct: 0, why: "الندم على الماضي ← conditionnel passé: «j'aurais aimé».", hint: "ندمٌ على ما فات ← conditionnel passé." },
+        { q: "Trouvez l'erreur : « Si j'aurais le temps, je viendrais. »", choices: ["phrase correcte", "il faut « si j'avais »", "il faut « je viendrai »", "il faut « si j'ai »"], correct: 1, why: "لا conditionnel بعد si؛ الصواب «Si j'avais le temps, je viendrais».", hint: "ممنوع conditionnel بعد si." }
+      ]
+    }
+    ]
+  },
+  {
+    id: "fr-u3", name: "Unité 3 — La vie culturelle au lycée (الضمائر الموصولة)",
+    lessons: [
+    {
+      id: "fr-u3-l1", name: "Les pronoms relatifs (simples et composés)", pages: "46–65",
+      summary: [
+        { h: "١. les pronoms relatifs simples",
+          body: "تربط الضمائر الموصولة البسيطة جملتين وتُغني عن التكرار، وهي **ثابتةٌ** (لا تتغيّر بالجنس والعدد):\n• **qui**: فاعل (le livre **qui** est sur la table).\n• **que**: مفعولٌ به مباشر (le livre **que** je lis).\n• **dont**: يعوّض مكمّلاً بـ **de** (le livre **dont** je parle).\n• **où**: مكانٌ أو زمان (la ville **où** je vis).",
+          more: "qui = فاعل (يتبعه فعل)، que = مفعول (يتبعه فاعل+فعل). dont تحلّ محلّ بنيةٍ فيها de (parler **de**, avoir besoin **de**)." },
+        { h: "٢. les pronoms relatifs composés",
+          body: "تُستعمل **الضمائر الموصولة المركّبة** بعد **حرف جرّ** (avec, pour, sur, dans...)، وهي **تتغيّر حسب الجنس والعدد**:\n**lequel, laquelle, lesquels, lesquelles**.\n«Le stylo **avec lequel** j'écris», «la raison **pour laquelle** je viens».",
+          more: "تتوافق المركّبة مع الاسم الذي تعوّضه في الجنس والعدد: مذكّر مفرد lequel، مؤنّث مفرد laquelle، مذكّر جمع lesquels، مؤنّث جمع lesquelles." },
+        { h: "٣. الإدغام مع à و de",
+          body: "عند مجيء **à** أو **de** قبل الضمير المركّب يحدث إدغام:\n• à + lequel → **auquel**، à + lesquels → **auxquels**... (à laquelle تبقى كما هي).\n• de + lequel → **duquel**، de + lesquels → **desquels**...\n«Le projet **auquel** je pense», «l'ami **duquel** je parle».",
+          more: "القاعدة كإدغام à/de مع أدوات التعريف: au/aux، du/des — والمؤنّث المفرد (à laquelle, de laquelle) لا يُدغَم." },
+        { h: "٤. Lexique & communication — la vie culturelle",
+          body: "مفردات: **une activité culturelle** نشاطٌ ثقافيّ، **un club** نادٍ، **le théâtre** المسرح، **exprimer son avis** يبدي رأيه، **la confiance en soi** الثقة بالنفس. وللتعبير عن الرأي: «À mon avis...», «Je pense que...», «Selon moi...».",
+          more: "تعبيراتٌ لإبداء الرأي: `à mon avis`, `je trouve que`, `selon moi` — تليها جملةٌ تامّة تعرض الرأي بحجّة." }
+      ],
+      cards: [
+        { q: "متى نستعمل qui ومتى que؟", a: "**qui** فاعل (يتبعه فعل)؛ **que** مفعولٌ به مباشر (يتبعه فاعل + فعل)." },
+        { q: "ما استعمال dont؟", a: "يعوّض مكمّلاً مسبوقاً بـ **de**: «le sujet **dont** je parle» (parler **de**)." },
+        { q: "ما استعمال où؟", a: "للدلالة على **المكان أو الزمان**: «la ville **où** je vis», «le jour **où** il est venu»." },
+        { q: "ما الضمائر الموصولة المركّبة؟ ومتى تُستعمل؟", a: "**lequel, laquelle, lesquels, lesquelles**؛ تُستعمل بعد **حرف جرّ** وتتوافق جنساً وعدداً." },
+        { q: "ما ناتج إدغام à و de مع lequel؟", a: "à + lequel → **auquel**؛ de + lequel → **duquel** (والمؤنّث المفرد لا يُدغَم)." },
+        { q: "ما الفرق بين الضمائر البسيطة والمركّبة؟", a: "البسيطة **ثابتة** (qui, que, dont, où)؛ والمركّبة **تتغيّر** بالجنس والعدد وتأتي بعد حرف جرّ." },
+        { q: "كيف نبدي الرأي بالفرنسيّة؟", a: "بـ**à mon avis / je pense que / selon moi** + جملة." }
+      ],
+      quiz: [
+        { q: "Choisissez : « C'est le livre ___ je préfère. »", choices: ["qui", "que", "dont", "où"], correct: 1, why: "مفعولٌ به مباشر (je préfère **le livre**) ← que.", hint: "يتبعه فاعلٌ وفعل ← مفعول ← que." },
+        { q: "Choisissez : « Voilà l'étudiant ___ a gagné le prix. »", choices: ["qui", "que", "dont", "auquel"], correct: 0, why: "فاعل (يتبعه فعل «a gagné») ← qui.", hint: "يتبعه فعلٌ مباشرة ← فاعل ← qui." },
+        { q: "Choisissez : « Le film ___ tout le monde parle est excellent. »", choices: ["que", "qui", "dont", "où"], correct: 2, why: "parler **de** ← dont: «dont tout le monde parle».", hint: "parler **de** ← أيّ ضمير يعوّض de؟" },
+        { q: "Choisissez : « La maison ___ j'habite est grande. »", choices: ["que", "où", "qui", "dont"], correct: 1, why: "دلالةٌ على المكان ← où.", hint: "مكانٌ ← où." },
+        { q: "Choisissez : « Le stylo avec ___ j'écris est rouge. »", choices: ["qui", "lequel", "laquelle", "dont"], correct: 1, why: "بعد حرف جرّ + اسمٍ مذكّر مفرد ← lequel.", hint: "بعد «avec» + اسمٍ مذكّر ← ضميرٌ مركّب." },
+        { q: "Choisissez : « La raison pour ___ je suis venu est simple. »", choices: ["lequel", "laquelle", "lesquels", "auquel"], correct: 1, why: "«la raison» مؤنّثٌ مفرد ← laquelle.", hint: "«raison» مؤنّث ← laquelle." },
+        { q: "« Le projet ___ je pense est important. » (penser à)", choices: ["duquel", "auquel", "lequel", "dont"], correct: 1, why: "penser **à** + à+lequel → auquel.", hint: "penser **à** ← إدغام à + lequel." },
+        { q: "Les pronoms relatifs composés varient selon :", choices: ["le temps", "le genre et le nombre", "la personne", "rien (invariables)"], correct: 1, why: "المركّبة تتوافق في الجنس والعدد، بخلاف البسيطة الثابتة.", hint: "lequel/laquelle/lesquels..." }
+      ]
+    }
+    ]
+  },
+  {
+    id: "fr-u4", name: "Unité 4 — Au théâtre (المبني للمعلوم والمجهول)",
+    lessons: [
+    {
+      id: "fr-u4-l1", name: "La voix active et la voix passive", pages: "66–85",
+      summary: [
+        { h: "١. من المعلوم إلى المجهول",
+          body: "في **la voix active** يقوم الفاعل بالفعل: «Le metteur en scène **dirige** la pièce.»\n\nفي **la voix passive** يصبح المفعول به فاعلاً نحويّاً: «La pièce **est dirigée par** le metteur en scène.»\n\nالمفعول به المباشر (COD) في المعلوم يصير **sujet** في المجهول.",
+          more: "التحويل: COD المعلوم ← فاعل المجهول؛ فاعل المعلوم ← complément d'agent بعد «par»؛ والفعل يصير être + participe passé." },
+        { h: "٢. تكوين المبني للمجهول",
+          body: "**être (في زمن الفعل الأصليّ) + participe passé**، ويُتبَع غالباً بـ **par + فاعل**:\n• présent: «est écrit»، passé composé: «a été écrit»، futur: «sera écrit».\n\nو**participe passé يتوافق** مع الفاعل الجديد جنساً وعدداً: «La pièce est **écrite**», «Les pièces sont **écrites**».",
+          more: "انتبه: زمن المجهول يُحمَل على المساعد être، والـ participe يتوافق مع الفاعل كصفة. «Les livres **ont été** vendu**s**»." },
+        { h: "٣. complément d'agent و par / de",
+          body: "**complément d'agent** هو من يقوم بالفعل حقيقةً، يسبقه غالباً **par**: «un roman écrit **par** Hanna Mina». ومع أفعال المشاعر أو الوصف يُستعمل **de**: «Il est aimé **de** tous», «couvert **de** neige».",
+          more: "القاعدة العامّة: par للفعل الملموس (écrit par)، و de للحالة/المشاعر (aimé de، entouré de، respecté de)." },
+        { h: "٤. Lexique du théâtre",
+          body: "مفردات المسرح: **une pièce (de théâtre)** مسرحيّة، **la scène** الخشبة/المشهد، **un acteur / une actrice** ممثّل/ة، **le metteur en scène** المخرج، **le public** الجمهور، **un dialogue / une réplique** حوار/جملة حواريّة، **jouer un rôle** يؤدّي دوراً.",
+          more: "تمييز: `une pièce` المسرحيّة كلّها، و`une scène` المشهد أو خشبة المسرح، و`une réplique` جملةٌ ينطقها الممثّل." }
+      ],
+      cards: [
+        { q: "ما الفرق بين الصوت المعلوم والمجهول؟", a: "في **المعلوم** الفاعل يفعل؛ وفي **المجهول** المفعولُ به يصبح فاعلاً نحويّاً والفعل être + participe passé." },
+        { q: "كيف يُبنى المبني للمجهول؟", a: "**être (في زمن الفعل الأصليّ) + participe passé**، متبوعاً غالباً بـ **par + فاعل**." },
+        { q: "هل يتوافق participe passé في المجهول؟", a: "نعم، يتوافق مع الفاعل الجديد جنساً وعدداً: «La pièce est **écrite**»." },
+        { q: "ما complément d'agent؟", a: "من يقوم بالفعل فعليّاً في الجملة المجهولة، يسبقه غالباً **par**: «écrit **par** l'auteur»." },
+        { q: "متى نستعمل de بدل par؟", a: "مع أفعال المشاعر والوصف: «aimé **de** tous», «couvert **de** neige»." },
+        { q: "حوّل إلى المجهول: « Molière a écrit cette pièce. »", a: "«Cette pièce **a été écrite par** Molière.» (توافق: écrite لأنّ pièce مؤنّث)." },
+        { q: "ترجم: المخرج، الممثّلة، الجمهور.", a: "**le metteur en scène**، **une actrice**، **le public**." }
+      ],
+      quiz: [
+        { q: "Mettez au passif : « L'auteur écrit la pièce. »", choices: ["La pièce est écrite par l'auteur", "La pièce écrit l'auteur", "La pièce a écrit l'auteur", "L'auteur est écrit par la pièce"], correct: 0, why: "COD «la pièce» يصير فاعلاً: «est écrite par l'auteur» (توافق مع pièce).", hint: "être + participe متوافق + par + الفاعل." },
+        { q: "Choisissez : « Ces romans ___ par un grand écrivain. »", choices: ["est écrit", "sont écrits", "sont écrit", "ont écrit"], correct: 1, why: "جمعٌ مذكّر ← sont + écrit**s** (توافق).", hint: "Ces romans جمع ← être جمع + توافق participe." },
+        { q: "Choisissez l'agent : « Le poème a été lu ___ l'actrice. »", choices: ["de", "par", "pour", "à"], correct: 1, why: "complément d'agent للفعل الملموس ← par.", hint: "فعلٌ ملموس (lire) ← par." },
+        { q: "Choisissez : « Il est respecté ___ tous ses collègues. »", choices: ["par", "de", "pour", "avec"], correct: 1, why: "مع المشاعر/الاحترام يُفضَّل de: «respecté **de** tous».", hint: "مشاعر/احترام ← de." },
+        { q: "La voix passive se forme avec :", choices: ["avoir + participe", "être + participe passé", "aller + infinitif", "en + participe présent"], correct: 1, why: "المجهول دائماً être + participe passé.", hint: "المساعد دائماً être." },
+        { q: "Au passif, le COD de la phrase active devient :", choices: ["complément d'agent", "sujet", "attribut", "adverbe"], correct: 1, why: "المفعول به المباشر يصير فاعلاً نحويّاً (sujet).", hint: "المفعول به ← فاعل." },
+        { q: "Choisissez : « La ville ___ de neige en hiver. » (couvrir)", choices: ["est couverte", "a couvert", "couvre", "est couvert"], correct: 0, why: "مجهولٌ مع توافق (ville مؤنّث): «est couverte» (ومع de للوصف).", hint: "ville مؤنّث ← couverte." },
+        { q: "Mettez au passif (futur) : « On construira un théâtre. »", choices: ["Un théâtre est construit", "Un théâtre sera construit", "Un théâtre a été construit", "Un théâtre construira"], correct: 1, why: "المستقبل ← être في المستقبل: «sera construit».", hint: "زمن الفعل على المساعد être ← futur." }
+      ]
+    }
+    ]
+  },
+  {
+    id: "fr-u5", name: "Unité 5 — L'astrologie (اسم الفاعل والجيروندِف)",
+    lessons: [
+    {
+      id: "fr-u5-l1", name: "Le participe présent & le gérondif", pages: "86–105",
+      summary: [
+        { h: "١. le participe présent",
+          body: "يُبنى **le participe présent** من **جذر nous في المضارع** + اللاحقة **-ant**:\nnous parl**ons** → parl**ant**، nous finiss**ons** → finiss**ant**، nous fais**ons** → fais**ant**.\n\nوهو **ثابتٌ لا يتغيّر**، ويعبّر عن فعلٍ أو سببٍ مرافق: «**Ayant** faim, il a mangé.»",
+          more: "ثلاثة أفعالٍ شاذّة: être → **étant**، avoir → **ayant**، savoir → **sachant**. والجذر دائماً من nous في المضارع." },
+        { h: "٢. le gérondif",
+          body: "يُبنى **le gérondif** من **en + participe présent**: «**en parlant**», «**en mangeant**».\n\nويعبّر عن:\n• **التزامن (simultanéité)**: «Il chante **en travaillant**» (يغنّي بينما يعمل).\n• **الطريقة (manière)**: «Il a réussi **en travaillant** beaucoup».\n• **الشرط (condition)**: «**En révisant**, tu réussiras».",
+          more: "شرطٌ مهمّ: فاعل الجيروندِف هو **نفسه فاعل الفعل الرئيس**. «En arrivant, j'ai vu...» = أنا من وصل ومن رأى." },
+        { h: "٣. الفرق بين participe présent و adjectif verbal",
+          body: "**participe présent** فعليٌّ ثابت (`un enfant obéissant à ses parents`)، أمّا **l'adjectif verbal** فصفةٌ تتوافق (`un enfant obéissant` → `une fille obéissante`). وقد يختلف الإملاء: fatigant (صفة) / fatiguant (participe).",
+          more: "اختبارٌ عمليّ: إن كان متبوعاً بمكمّلٍ أو ظرف ← participe présent ثابت؛ وإن وصف اسماً فقط ← adjectif verbal يتوافق." },
+        { h: "٤. Lexique — l'astrologie",
+          body: "مفردات: **l'astrologie** علم التنجيم، **un signe (astrologique)** برج، **l'horoscope** الطالع، **une prédiction** تنبّؤ، **prédire l'avenir** يتنبّأ بالمستقبل، **le caractère / les traits** الطباع/السمات، **croire à** يؤمن بـ.",
+          more: "بناءٌ مفيد للتعبير عن السمات: «Les personnes **étant** nées sous ce signe sont...» أو بالجيروندِف «**En lisant** son horoscope, elle sourit»." }
+      ],
+      cards: [
+        { q: "كيف يُبنى le participe présent؟", a: "من **جذر nous في المضارع + -ant**: nous finissons → **finissant**." },
+        { q: "ما الأفعال الشاذّة في participe présent؟", a: "être → **étant**، avoir → **ayant**، savoir → **sachant**." },
+        { q: "كيف يُبنى le gérondif؟", a: "**en + participe présent**: «en parlant», «en faisant»." },
+        { q: "ما القيم الثلاث للجيروندِف؟", a: "**التزامن** (en travaillant)، **الطريقة** (en travaillant beaucoup)، و**الشرط** (en révisant, tu réussiras)." },
+        { q: "ما شرط استعمال الجيروندِف؟", a: "أن يكون **فاعله هو نفسه فاعل الفعل الرئيس**: «En arrivant, j'ai vu...»." },
+        { q: "ما الفرق بين participe présent و adjectif verbal؟", a: "الأوّل فعليٌّ **ثابت** (مع مكمّل)، والثاني **صفةٌ تتوافق** جنساً وعدداً (une fille obéissante)." },
+        { q: "ترجم: برج، الطالع، يتنبّأ بالمستقبل.", a: "**un signe**، **l'horoscope**، **prédire l'avenir**." }
+      ],
+      quiz: [
+        { q: "Le participe présent de « finir » est :", choices: ["finant", "finissant", "finissent", "fini"], correct: 1, why: "من nous finiss**ons** ← finiss**ant**.", hint: "من جذر nous في المضارع + -ant." },
+        { q: "Le gérondif se forme avec :", choices: ["en + participe présent", "à + infinitif", "être + participe", "de + nom"], correct: 0, why: "الجيروندِف = en + participe présent.", hint: "en + ...ant." },
+        { q: "Choisissez : « Il écoute de la musique ___ (étudier). »", choices: ["étudiant", "en étudiant", "étudié", "à étudier"], correct: 1, why: "تزامنٌ ← gérondif: «en étudiant».", hint: "فعلان متزامنان لنفس الفاعل ← gérondif." },
+        { q: "Participe présent de « avoir » :", choices: ["avant", "ayant", "ayent", "eu"], correct: 1, why: "avoir ← **ayant** (شاذّ).", hint: "فعلٌ شاذّ." },
+        { q: "Choisissez : « ___ beaucoup, elle a réussi. » (manière/cause)", choices: ["Travaillant", "Travaillé", "En travaille", "Travaille"], correct: 0, why: "participe présent يعبّر عن السبب: «Travaillant beaucoup, elle a réussi».", hint: "سببٌ مرافق ← participe présent." },
+        { q: "Choisissez l'adjectif verbal : « une histoire ___ »", choices: ["amusant", "amusante", "en amusant", "amuser"], correct: 1, why: "صفةٌ تتوافق مع histoire (مؤنّث) ← amusante.", hint: "تصف اسماً مؤنّثاً ← توافق." },
+        { q: "Choisissez : « ___ (réviser) régulièrement, tu réussiras. » (condition)", choices: ["Révisant", "En révisant", "Révisé", "À réviser"], correct: 1, why: "الشرط ← gérondif: «En révisant...».", hint: "شرطٌ ← en + participe présent." },
+        { q: "Le participe présent est :", choices: ["variable en genre", "invariable", "toujours au pluriel", "un temps du passé"], correct: 1, why: "participe présent ثابتٌ لا يتغيّر (بخلاف adjectif verbal).", hint: "ثابتٌ عكس الصفة الفعليّة." }
+      ]
+    }
+    ]
+  },
+  {
+    id: "fr-u6", name: "Unité 6 — Le développement durable (التفضيل)",
+    lessons: [
+    {
+      id: "fr-u6-l1", name: "Le comparatif & le superlatif", pages: "106–135",
+      summary: [
+        { h: "١. le comparatif",
+          body: "للمقارنة نستعمل ثلاث درجات مع **الصفة**:\n• **التفوّق**: `plus + adjectif + que` — «Il est **plus** grand **que** moi».\n• **التدنّي**: `moins + adjectif + que` — «Elle est **moins** rapide **que** lui».\n• **التساوي**: `aussi + adjectif + que` — «Tu es **aussi** fort **que** moi».",
+          more: "مع الاسم نستعمل plus de / moins de / autant de، ومع الفعل plus / moins / autant. والصفة تتوافق مع الموصوف دائماً." },
+        { h: "٢. le superlatif",
+          body: "لأعلى/أدنى درجة نستعمل **le / la / les + plus / moins + adjectif**:\n«C'est **le plus** grand bâtiment», «C'est **la moins** chère».\n\nويُتبَع غالباً بـ **de** للمجموعة: «le plus intelligent **de** la classe».",
+          more: "موضع الصفة: إن كانت تسبق الاسم عادةً وضعناها «le plus grand livre»؛ وإن كانت تليه كرّرنا الأداة «le livre le plus intéressant»." },
+        { h: "٣. الحالات الشاذّة (bon / mauvais / bien)",
+          body: "صيغٌ خاصّة في التفضيل:\n• **bon(ne)** → comparatif **meilleur(e)**، superlatif **le/la meilleur(e)**.\n• **bien** → comparatif **mieux**، superlatif **le mieux**.\n• **mauvais** → **pire / plus mauvais**.\n«Ce film est **meilleur** que l'autre», «Elle chante **mieux** que moi».",
+          more: "لا تخلط: **meilleur** صفةٌ (تصف اسماً) و**mieux** ظرفٌ (يصف فعلاً). «un meilleur résultat» لكن «travailler mieux»." },
+        { h: "٤. Lexique — le développement durable",
+          body: "مفردات: **le développement durable** التنمية المستدامة، **l'environnement** البيئة، **la pollution** التلوّث، **le recyclage** إعادة التدوير، **les énergies renouvelables** الطاقات المتجدّدة، **protéger / préserver** يحمي/يصون، **le réchauffement climatique** الاحترار المناخيّ.",
+          more: "تعبيرٌ مفيد بالمقارنة للبيئة: «Les énergies renouvelables sont **moins** polluantes **que** le pétrole» و«Le recyclage est **le meilleur** moyen de protéger l'environnement»." }
+      ],
+      cards: [
+        { q: "اذكر درجات المقارنة الثلاث مع الصفة.", a: "**plus...que** (تفوّق)، **moins...que** (تدنٍّ)، **aussi...que** (تساوٍ)." },
+        { q: "كيف نكوّن le superlatif؟", a: "**le/la/les + plus/moins + adjectif**، متبوعاً غالباً بـ **de**: «le plus grand **de** la classe»." },
+        { q: "ما comparatif و superlatif لـ bon؟", a: "comparatif **meilleur(e)**، superlatif **le/la meilleur(e)**." },
+        { q: "ما comparatif و superlatif لـ bien؟", a: "comparatif **mieux**، superlatif **le mieux**." },
+        { q: "ما الفرق بين meilleur و mieux؟", a: "**meilleur** صفةٌ (تصف اسماً)، و**mieux** ظرفٌ (يصف فعلاً): «un meilleur livre» / «travailler mieux»." },
+        { q: "كيف نقارن مع الاسم ومع الفعل؟", a: "مع الاسم: **plus de / moins de / autant de**؛ مع الفعل: **plus / moins / autant**." },
+        { q: "ترجم: البيئة، التلوّث، إعادة التدوير، الطاقات المتجدّدة.", a: "**l'environnement**، **la pollution**، **le recyclage**، **les énergies renouvelables**." }
+      ],
+      quiz: [
+        { q: "Choisissez : « Il est ___ intelligent ___ son frère. » (supériorité)", choices: ["aussi...que", "plus...que", "moins...de", "le plus...de"], correct: 1, why: "التفوّق ← plus...que.", hint: "تفوّق ← plus ... que." },
+        { q: "Choisissez : « C'est ___ élève de la classe. » (le meilleur niveau)", choices: ["plus bon", "le meilleur", "le plus bon", "mieux"], correct: 1, why: "bon ← superlatif «le meilleur» (لا «le plus bon»).", hint: "bon لا يأخذ plus ← صيغةٌ شاذّة." },
+        { q: "Choisissez : « Elle chante ___ que moi. » (adverbe de « bien »)", choices: ["meilleur", "mieux", "plus bien", "bonne"], correct: 1, why: "bien ← mieux (ظرف لأنّه يصف الفعل chante).", hint: "يصف فعلاً (chanter) ← ظرف mieux." },
+        { q: "Choisissez : « Ce livre est ___ intéressant ___ l'autre. » (égalité)", choices: ["plus...que", "aussi...que", "moins...de", "le plus"], correct: 1, why: "التساوي ← aussi...que.", hint: "تساوٍ ← aussi ... que." },
+        { q: "Choisissez : « Le recyclage est ___ bon moyen de protéger l'environnement. »", choices: ["le plus", "le meilleur", "plus", "mieux"], correct: 1, why: "superlatif لـ bon ← «le meilleur moyen».", hint: "أفضل + اسم ← le meilleur." },
+        { q: "« meilleur » est : ... et « mieux » est : ...", choices: ["adverbe / adjectif", "adjectif / adverbe", "deux adjectifs", "deux adverbes"], correct: 1, why: "meilleur صفة، mieux ظرف.", hint: "الصفة تصف اسماً، الظرف يصف فعلاً." },
+        { q: "Choisissez : « Il y a ___ pollution ici qu'en ville. » (moins + nom)", choices: ["moins de", "moins que", "moins", "le moins"], correct: 0, why: "مع الاسم ← moins **de**: «moins de pollution».", hint: "قبل اسمٍ (pollution) ← moins de." },
+        { q: "Choisissez : « Les énergies renouvelables sont ___ polluantes que le pétrole. »", choices: ["plus", "moins", "aussi mauvais", "le moins"], correct: 1, why: "الطاقات المتجدّدة أقلّ تلويثاً ← moins...que.", hint: "أقلّ تلويثاً ← moins ... que." }
+      ]
+    }
+    ]
+  }
+  ]
+};
+if(typeof SUBJ_THANAWI2 !== "undefined" && !SUBJ_THANAWI2.some(s=>s.id==="french")) SUBJ_THANAWI2.push(FRENCH);
+(function(){ try{ const c=CURRICULA.find(x=>x.id==="thanawi2-sci"); const p=c&&c.prevExam&&c.prevExam.subjects.find(s=>s.key==="french"); if(p) p.targets=["french"]; }catch(e){} })();
+/* ===== FRENCH END ===== */
 
 
 </script>
