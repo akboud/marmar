@@ -1,0 +1,24 @@
+name: Supabase Keep-Alive
+
+# Keeps the Supabase project active so it is not auto-paused for inactivity (free tier).
+# Sends a simple daily request to the public function public.ping() using the public anon key.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase (public ping RPC)
+        run: |
+          echo "Pinging Supabase to keep the project active..."
+          curl -sS -X POST \
+            "https://curedjpinkktekxdqsyp.supabase.co/rest/v1/rpc/ping" \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cmVkanBpbmtrdGVreGRxc3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3NDQ0MjYsImV4cCI6MjEwNzMyMDQyNn0.cjMjLexFjq5Tu2WqeP8ECQQ_fOGdR-4KqHpgmEl__UY" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            --fail --show-error --max-time 30
+          echo "Done."
