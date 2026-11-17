@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-10-31 · لا تحتاج إنترنت -->
+<!-- منصة مرمر — نسخة ملف واحد · بُنيت في 2026-11-17 · لا تحتاج إنترنت -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>منصة مرمر — الصف الثاني الثانوي / العلمي</title>
@@ -297,10 +297,11 @@
     <input id="gName" type="text" autocomplete="username" placeholder="الاسم">
     <div class="pw"><input id="gPass" type="password" autocomplete="current-password" placeholder="كلمة المرور"><button type="button" class="eye" onclick="pwToggle(this)" aria-label="إظهار كلمة المرور"></button></div>
     <input id="gInvite" class="gate-field" type="text" placeholder="رمز الدعوة (للحساب الجديد)">
-    <input id="gParentEmail" class="gate-field" type="email" autocomplete="email" placeholder="بريد وليّ الأمر الإلكترونيّ" style="direction:ltr">
-    <div class="pw gate-field" id="gParentWrap"><input id="gParent" type="password" autocomplete="new-password" placeholder="كلمة مرور وليّ الأمر"><button type="button" class="eye" onclick="pwToggle(this)" aria-label="إظهار كلمة المرور"></button></div>
+    <div id="gParentLabel" class="gate-field" style="text-align:right;font-weight:600;font-size:.9rem;color:var(--brand);margin:6px 2px 2px">حساب وليّ الأمر <span style="color:var(--muted);font-weight:400">(اختياريّ)</span></div>
+    <input id="gParentEmail" class="gate-field" type="email" autocomplete="email" placeholder="بريد وليّ الأمر الإلكترونيّ (اختياريّ)" style="direction:ltr">
+    <div class="pw gate-field" id="gParentWrap"><input id="gParent" type="password" autocomplete="new-password" placeholder="كلمة مرور وليّ الأمر (اختياريّ)"><button type="button" class="eye" onclick="pwToggle(this)" aria-label="إظهار كلمة المرور"></button></div>
     <div class="pw gate-field" id="gParent2Wrap"><input id="gParent2" type="password" autocomplete="new-password" placeholder="تأكيد كلمة مرور وليّ الأمر"><button type="button" class="eye" onclick="pwToggle(this)" aria-label="إظهار كلمة المرور"></button></div>
-    <div id="gParentHint" class="gate-field" style="font-size:.78rem;color:var(--muted);text-align:right;margin:-4px 2px 10px;line-height:1.4">كلمة مرور وبريد خاصّان بوليّ الأمر لمتابعة الطالب (غير كلمة مرور الطالب). يُرسَل إلى البريد رمز تحقّق عند أوّل دخول.</div>
+    <div id="gParentHint" class="gate-field" style="font-size:.78rem;color:var(--muted);text-align:right;margin:-4px 2px 10px;line-height:1.4">يمكن ترك هذا القسم فارغاً وإنشاء الحساب بلا وليّ أمر، وإضافته لاحقاً من لوحة المتابعة. وإن ملأته: كلمة مرور وبريد خاصّان بوليّ الأمر (غير كلمة مرور الطالب)، ويُرسَل إلى البريد رمز تحقّق عند أوّل دخول.</div>
     <div id="gCurr" class="gate-field" style="text-align:right;margin-bottom:12px"></div>
     <button id="gateBtn" type="submit">دخول</button>
     <div class="gate-err" id="gateErr"></div>
@@ -21304,6 +21305,7 @@ function setMode(m){
   $("tabLogin").classList.toggle("on", m==="login");
   $("tabReg").classList.toggle("on", m==="register");
   $("gInvite").classList.toggle("show", m==="register");
+  $("gParentLabel").classList.toggle("show", m==="register");
   $("gParentEmail").classList.toggle("show", m==="register");
   $("gParentWrap").classList.toggle("show", m==="register");
   $("gParent2Wrap").classList.toggle("show", m==="register");
@@ -21341,9 +21343,12 @@ function showGate(){
     let r;
     if(__mode==="register"){
       const pEmail = $("gParentEmail").value.trim(), pp = $("gParent").value, pp2 = $("gParent2").value;
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pEmail)){ err.textContent="أدخل بريد وليّ الأمر صحيحاً"; btn.disabled=false; return; }
-      if(pp.length < 4){ err.textContent="كلمة مرور وليّ الأمر قصيرة (٤ أحرف على الأقلّ)"; btn.disabled=false; return; }
-      if(pp !== pp2){ err.textContent="كلمتا مرور وليّ الأمر غير متطابقتين"; btn.disabled=false; return; }
+      // حساب وليّ الأمر اختياريّ: لا نتحقّق إلا إذا بدأ المستخدم بملئه
+      if(pp || pp2 || pEmail){
+        if(pp.length < 4){ err.textContent="كلمة مرور وليّ الأمر قصيرة (٤ أحرف على الأقلّ)"; btn.disabled=false; return; }
+        if(pp !== pp2){ err.textContent="كلمتا مرور وليّ الأمر غير متطابقتين"; btn.disabled=false; return; }
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pEmail)){ err.textContent="أدخل بريد وليّ الأمر صحيحاً (لازمٌ عند تفعيل حساب وليّ الأمر)"; btn.disabled=false; return; }
+      }
       const sel = document.querySelector('input[name="gCurrR"]:checked');
       const curriculum = sel ? sel.value : ((availCurr()[0]||{}).id || "thanawi2-sci");
       r = await CLOUD.register(name, pw, $("gInvite").value.trim(), curriculum, pp, pEmail);
